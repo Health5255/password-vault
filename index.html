@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>密码保险箱</title>
+<title>瀵嗙爜淇濋櫓绠?/title>
 <style>
   /* ===== Reset & Variables ===== */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
+
+  /* Dark Theme (default) */
+  :root, html.dark {
     --bg: #0f0f14;
     --surface: #1a1a24;
     --surface-hover: #24243a;
@@ -21,7 +23,35 @@
     --radius: 12px;
     --radius-sm: 8px;
     --shadow: 0 8px 32px rgba(0,0,0,.45);
+    --toggle-bg: #2a2a3e;
+    --input-bg: var(--bg);
+    --card-border: var(--border);
+    --overlay-bg: rgba(0,0,0,.6);
+    --divider: rgba(255,255,255,.04);
   }
+
+  /* Light Theme */
+  html.light {
+    --bg: #f0f2f8;
+    --surface: #ffffff;
+    --surface-hover: #e8eaf0;
+    --border: #d4d6e0;
+    --text: #1a1a2e;
+    --text-secondary: #6b6b8a;
+    --accent: #6c5ce7;
+    --accent-glow: rgba(108,92,231,.18);
+    --green: #00b87a;
+    --red: #e74c3c;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 8px 32px rgba(0,0,0,.1);
+    --toggle-bg: #d4d6e0;
+    --input-bg: #f0f2f8;
+    --card-border: #d4d6e0;
+    --overlay-bg: rgba(0,0,0,.35);
+    --divider: rgba(0,0,0,.06);
+  }
+
   html { font-size: 15px; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", system-ui, sans-serif;
@@ -30,9 +60,17 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    transition: background .3s, color .3s;
+  }
+  html.dark body {
     background-image:
       radial-gradient(ellipse at 20% 20%, rgba(108,92,231,.08) 0%, transparent 50%),
       radial-gradient(ellipse at 80% 80%, rgba(0,214,143,.06) 0%, transparent 50%);
+  }
+  html.light body {
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(108,92,231,.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(0,214,143,.03) 0%, transparent 50%);
   }
 
   /* ===== Scrollbar ===== */
@@ -40,6 +78,125 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+  /* ===== Login Screen ===== */
+  #loginScreen {
+    position: fixed; inset: 0;
+    z-index: 999;
+    display: flex;
+    align-items: center; justify-content: center;
+    background: var(--bg);
+    backdrop-filter: blur(0);
+    transition: background .3s;
+  }
+  #loginScreen.hidden {
+    display: none;
+  }
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px 36px 36px;
+    width: 100%; max-width: 400px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    animation: modalIn .35s ease;
+  }
+  .login-box .logo-big {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+  .login-box h1 {
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+  }
+  .login-box h1 span { color: var(--accent); }
+  .login-box p.sub {
+    font-size: .85rem;
+    color: var(--text-secondary);
+    margin-bottom: 28px;
+  }
+  .login-box .form-group {
+    text-align: left;
+    margin-bottom: 20px;
+  }
+  .login-box .form-group label {
+    display: block;
+    font-size: .8rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .login-box .form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--input-bg);
+    color: var(--text);
+    font-size: 1rem;
+    outline: none;
+    transition: border .2s, box-shadow .2s;
+  }
+  .login-box .form-group input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .login-box .btn-primary {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--accent), #7c6cf0);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    box-shadow: 0 4px 16px var(--accent-glow);
+  }
+  .login-box .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px var(--accent-glow);
+  }
+  .login-box .btn-primary:active { transform: translateY(0); }
+  .login-box .login-error {
+    color: var(--red);
+    font-size: .8rem;
+    margin-top: 12px;
+    min-height: 20px;
+  }
+  .login-box .setup-hint {
+    font-size: .78rem;
+    color: var(--text-secondary);
+    margin-top: 16px;
+    padding: 10px 14px;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    border: 1px dashed var(--border);
+    line-height: 1.5;
+  }
+  .login-box .theme-btn-login {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--text-secondary);
+    transition: all .2s;
+  }
+  .login-box .theme-btn-login:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+  }
 
   /* ===== Header ===== */
   header {
@@ -49,6 +206,7 @@
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 16px;
+    transition: background .3s;
   }
   .logo {
     display: flex;
@@ -72,6 +230,59 @@
     color: var(--text-secondary);
   }
   .header-stats strong { color: var(--text); font-weight: 600; }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* ===== Theme Toggle ===== */
+  .theme-toggle {
+    background: var(--toggle-bg);
+    border: none;
+    border-radius: 20px;
+    width: 48px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    padding: 3px;
+    cursor: pointer;
+    position: relative;
+    transition: background .3s;
+    flex-shrink: 0;
+  }
+  .theme-toggle .knob {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--surface);
+    box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    transition: transform .3s, background .3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+  html.dark .theme-toggle .knob { transform: translateX(0); }
+  html.light .theme-toggle .knob { transform: translateX(22px); }
+
+  /* ===== Logout Button ===== */
+  .btn-logout {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: .8rem;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .btn-logout:hover {
+    background: var(--surface-hover);
+    color: var(--red);
+    border-color: var(--red);
+  }
 
   /* ===== Search Bar ===== */
   .toolbar {
@@ -163,7 +374,7 @@
   /* ===== Card ===== */
   .card {
     background: var(--surface);
-    border: 1px solid var(--border);
+    border: 1px solid var(--card-border);
     border-radius: var(--radius);
     padding: 18px 20px;
     transition: all .2s;
@@ -182,13 +393,8 @@
   .card[data-color="pink"]::before   { background: linear-gradient(90deg, #e84393, #fd79a8); }
   .card[data-color="teal"]::before   { background: linear-gradient(90deg, #00cec9, #81ecec); }
   .card[data-color="red"]::before    { background: linear-gradient(90deg, #d63031, #ff7675); }
-  .card[data-color="yellow"]::before { background: linear-gradient(90deg, #f39c12, #ffeaa7); }
+  .card[data-color="yellow"]::before { background: linear-gradient(90deg, #fdcb6e, #ffeaa7); }
 
-  .card:hover {
-    border-color: var(--accent);
-    box-shadow: 0 4px 24px rgba(0,0,0,.3);
-    transform: translateY(-2px);
-  }
   .card-header {
     display: flex;
     align-items: center;
@@ -226,7 +432,7 @@
   .field {
     display: flex; align-items: center;
     padding: 6px 0;
-    border-bottom: 1px solid rgba(255,255,255,.04);
+    border-bottom: 1px solid var(--divider);
   }
   .field:last-child { border-bottom: none; }
   .field-label {
@@ -250,7 +456,7 @@
   .card-footer {
     display: flex; justify-content: flex-end; gap: 6px;
     padding-top: 6px;
-    border-top: 1px solid rgba(255,255,255,.04);
+    border-top: 1px solid var(--divider);
   }
   .card-footer .btn-icon { width: 28px; height: 28px; font-size: .8rem; }
 
@@ -258,7 +464,7 @@
   .modal-overlay {
     display: none;
     position: fixed; inset: 0;
-    background: rgba(0,0,0,.6);
+    background: var(--overlay-bg);
     backdrop-filter: blur(8px);
     z-index: 100;
     align-items: center; justify-content: center;
@@ -288,7 +494,7 @@
     width: 100%; padding: 10px 14px;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    background: var(--bg);
+    background: var(--input-bg);
     color: var(--text);
     font-size: .9rem;
     outline: none;
@@ -333,120 +539,298 @@
   @media (max-width: 600px) {
     header { padding: 16px 16px 0; }
     .toolbar { padding: 12px 16px; }
-    .vault { padding: 0 16px 20px; }
+    .vault { padding: 0 16px 24px; }
     .grid { grid-template-columns: 1fr; }
-    .modal { padding: 20px; }
-    .header-stats { order: 3; width: 100%; justify-content: flex-start; }
+    .login-box { margin: 16px; padding: 28px 24px; }
   }
 </style>
 </head>
 <body>
 
-<!-- ===== Header ===== -->
+<!-- ===== Login Screen ===== -->
+<div id="loginScreen">
+  <div class="login-box" style="position:relative">
+    <button class="theme-btn-login" onclick="toggleTheme()" title="鍒囨崲涓婚" id="loginThemeBtn">馃寵</button>
+    <div class="logo-big">馃攼</div>
+    <h1>瀵嗙爜<span>淇濋櫓绠?/span></h1>
+    <p class="sub" id="loginSubText">璇疯緭鍏ヤ富瀵嗙爜瑙ｉ攣</p>
+    <div class="form-group">
+      <label id="loginLabel">涓诲瘑鐮?/label>
+      <input type="password" id="loginPw" placeholder="璇疯緭鍏ヤ富瀵嗙爜" autocomplete="off" onkeydown="if(event.key==='Enter')handleLogin()">
+    </div>
+    <div class="form-group" id="confirmGroup" style="display:none">
+      <label>纭涓诲瘑鐮?/label>
+      <input type="password" id="loginPwConfirm" placeholder="鍐嶆杈撳叆涓诲瘑鐮? autocomplete="off" onkeydown="if(event.key==='Enter')handleLogin()">
+    </div>
+    <button class="btn-primary" id="loginBtn" onclick="handleLogin()">瑙ｉ攣</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="setup-hint" id="setupHint" style="display:none">
+      馃挕 棣栨浣跨敤锛岃璁剧疆涓€涓富瀵嗙爜銆傚瘑鐮佹暟鎹皢鐢ㄦ瀵嗙爜鍔犲瘑瀛樺偍鍦ㄦ祻瑙堝櫒涓€?br>
+      <strong>璇风墷璁版瀵嗙爜锛屽繕璁板悗鏃犳硶鎭㈠锛?/strong>
+    </div>
+    <div class="setup-hint" id="loginHint" style="display:none">
+      鈩癸笍 杈撳叆浣犻娆¤缃殑涓诲瘑鐮佸嵆鍙В閿佸瘑鐮佷繚闄╃銆?    </div>
+  </div>
+</div>
+
+<!-- ===== Main App ===== -->
+<div id="app" style="display:none;flex-direction:column;min-height:100vh">
 <header>
   <div class="logo">
-    <div class="logo-icon">🔐</div>
-    <h1>密码<span>保险箱</span></h1>
+    <div class="logo-icon">馃攼</div>
+    <h1>瀵嗙爜<span>淇濋櫓绠?/span></h1>
   </div>
-  <div class="header-stats">
-    <span>总计 <strong id="totalCount">0</strong> 条</span>
-    <span>分类 <strong id="categoryCount">0</strong> 类</span>
+  <div class="header-actions">
+    <div class="header-stats">
+      <span>鎬昏 <strong id="totalCount">0</strong> 鏉?/span>
+      <span>鍒嗙被 <strong id="categoryCount">0</strong> 绫?/span>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" title="鍒囨崲娣辫壊/娴呰壊涓婚">
+      <span class="knob">馃寵</span>
+    </button>
+    <button class="btn-logout" onclick="logout()" title="閿佸畾淇濋櫓绠?>馃敀 閿佸畾</button>
   </div>
 </header>
 
-<!-- ===== Toolbar ===== -->
 <div class="toolbar">
   <div class="search-wrap">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-    <input type="text" id="search" placeholder="搜索服务名称或用户名…" oninput="render()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input type="text" id="search" placeholder="鎼滅储鏈嶅姟鍚嶇О鎴栫敤鎴峰悕鈥? oninput="render()">
   </div>
   <button class="btn btn-primary" onclick="openAddModal()">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-    新增
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    鏂板
   </button>
 </div>
 
-<!-- ===== Vault ===== -->
 <div class="vault">
   <div class="grid" id="grid"></div>
 </div>
 
-<!-- ===== Modal ===== -->
+<!-- ===== Add / Edit Modal ===== -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
-    <h2 id="modalTitle">📝 新增密码</h2>
+    <h2 id="modalTitle">馃摑 鏂板瀵嗙爜</h2>
     <div class="form-group">
-      <label>服务名称</label>
-      <input type="text" id="fName" placeholder="例如: GitHub">
+      <label>鏈嶅姟鍚嶇О</label>
+      <input type="text" id="fName" placeholder="渚嬪: GitHub">
     </div>
     <div class="form-group">
-      <label>网址（可选）</label>
-      <input type="text" id="fUrl" placeholder="例如: https://github.com">
+      <label>缃戝潃锛堝彲閫夛級</label>
+      <input type="text" id="fUrl" placeholder="渚嬪: https://github.com">
     </div>
     <div class="form-group">
-      <label>图标 emoji</label>
-      <input type="text" id="fIcon" placeholder="例如: 👾" maxlength="2" style="width:80px">
+      <label>鍥炬爣 emoji</label>
+      <input type="text" id="fIcon" placeholder="渚嬪: 馃懢" maxlength="2" style="width:80px">
     </div>
     <div class="form-group">
-      <label>分类色标</label>
+      <label>鍒嗙被鑹叉爣</label>
       <select id="fColor">
-        <option value="purple">紫色</option>
-        <option value="blue">蓝色</option>
-        <option value="green">绿色</option>
-        <option value="orange">橙色</option>
-        <option value="pink">粉色</option>
-        <option value="teal">青色</option>
-        <option value="red">红色</option>
-        <option value="yellow">黄色</option>
+        <option value="purple">绱壊</option>
+        <option value="blue">钃濊壊</option>
+        <option value="green">缁胯壊</option>
+        <option value="orange">姗欒壊</option>
+        <option value="pink">绮夎壊</option>
+        <option value="teal">闈掕壊</option>
+        <option value="red">绾㈣壊</option>
+        <option value="yellow">榛勮壊</option>
       </select>
     </div>
     <div class="form-group">
-      <label>用户名 / 邮箱</label>
-      <input type="text" id="fUsername" placeholder="例如: user@example.com">
+      <label>鐢ㄦ埛鍚?/ 閭</label>
+      <input type="text" id="fUsername" placeholder="渚嬪: user@example.com">
     </div>
     <div class="form-group">
-      <label>密码</label>
+      <label>瀵嗙爜</label>
       <div class="pw-row">
-        <input type="text" id="fPassword" placeholder="输入密码">
-        <button class="btn-icon" onclick="generatePassword()" title="生成随机密码">🎲</button>
+        <input type="text" id="fPassword" placeholder="杈撳叆瀵嗙爜">
+        <button class="btn-icon" onclick="generatePassword()" title="鐢熸垚闅忔満瀵嗙爜">馃幉</button>
       </div>
     </div>
     <div class="form-group">
-      <label>备注（可选）</label>
-      <input type="text" id="fNote" placeholder="例如: 个人邮箱">
+      <label>澶囨敞锛堝彲閫夛級</label>
+      <input type="text" id="fNote" placeholder="渚嬪: 涓汉閭">
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">取消</button>
-      <button class="btn btn-primary" id="modalSaveBtn" onclick="saveEntry()">保存</button>
+      <button class="btn btn-ghost" onclick="closeModal()">鍙栨秷</button>
+      <button class="btn btn-primary" id="modalSaveBtn" onclick="saveEntry()">淇濆瓨</button>
     </div>
   </div>
+</div>
 </div>
 
 <!-- ===== Toast Container ===== -->
 <div class="toast-container" id="toasts"></div>
 
 <script>
+// ===== Utility =====
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// Simple SHA-256 hash
+async function sha256(str) {
+  const buf = new TextEncoder().encode(str);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Simple XOR-based encrypt/decrypt using master password
+function encryptData(data, key) {
+  const json = JSON.stringify(data);
+  let keyStr = '';
+  for (let i = 0; i < json.length; i++) {
+    const kc = key.charCodeAt(i % key.length);
+    keyStr += String.fromCharCode(json.charCodeAt(i) ^ kc);
+  }
+  return btoa(unescape(encodeURIComponent(keyStr)));
+}
+
+function decryptData(encoded, key) {
+  try {
+    const keyStr = decodeURIComponent(escape(atob(encoded)));
+    let json = '';
+    for (let i = 0; i < keyStr.length; i++) {
+      const kc = key.charCodeAt(i % key.length);
+      json += String.fromCharCode(keyStr.charCodeAt(i) ^ kc);
+    }
+    return JSON.parse(json);
+  } catch { return null; }
+}
+
+// ===== Theme =====
+function getTheme() {
+  return localStorage.getItem('pw_theme') || 'dark';
+}
+
+function setTheme(theme) {
+  localStorage.setItem('pw_theme', theme);
+  document.documentElement.className = theme;
+  // Update toggle icons
+  const isDark = theme === 'dark';
+  document.querySelectorAll('.theme-toggle .knob, #loginThemeBtn').forEach(el => {
+    el.textContent = isDark ? '馃寵' : '鈽€锔?;
+  });
+}
+
+function toggleTheme() {
+  const next = getTheme() === 'dark' ? 'light' : 'dark';
+  setTheme(next);
+}
+
+// ===== Login =====
+let masterKey = '';
+
+function getStoredHash() {
+  return localStorage.getItem('pw_master_hash');
+}
+
+function isLoggedIn() {
+  return sessionStorage.getItem('pw_logged_in') === 'true';
+}
+
+function showLogin() {
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginPw').value = '';
+  document.getElementById('loginPwConfirm').value = '';
+  document.getElementById('loginError').textContent = '';
+  masterKey = '';
+  sessionStorage.removeItem('pw_logged_in');
+}
+
+function handleLogin() {
+  const pw = document.getElementById('loginPw').value;
+  const error = document.getElementById('loginError');
+  const hash = getStoredHash();
+
+  if (!hash) {
+    // First time setup
+    const confirm = document.getElementById('loginPwConfirm').value;
+    if (!confirm) {
+      // First click - show confirm field
+      document.getElementById('confirmGroup').style.display = 'block';
+      document.getElementById('loginPwConfirm').focus();
+      document.getElementById('loginBtn').textContent = '璁剧疆涓诲瘑鐮?;
+      document.getElementById('loginSubText').textContent = '棣栨浣跨敤锛岃璁剧疆涓诲瘑鐮?;
+      return;
+    }
+    if (pw.length < 4) {
+      error.textContent = '涓诲瘑鐮佽嚦灏?4 涓瓧绗?;
+      return;
+    }
+    if (pw !== confirm) {
+      error.textContent = '涓ゆ杈撳叆鐨勫瘑鐮佷笉涓€鑷?;
+      return;
+    }
+    // Save hash and proceed
+    sha256(pw).then(h => {
+      localStorage.setItem('pw_master_hash', h);
+      masterKey = pw;
+      sessionStorage.setItem('pw_logged_in', 'true');
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('app').style.display = 'flex';
+      init();
+    });
+    return;
+  }
+
+  // Verify password
+  sha256(pw).then(h => {
+    if (h === hash) {
+      masterKey = pw;
+      sessionStorage.setItem('pw_logged_in', 'true');
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('app').style.display = 'flex';
+      init();
+    } else {
+      error.textContent = '鉂?涓诲瘑鐮侀敊璇?;
+      document.getElementById('loginPw').value = '';
+      document.getElementById('loginPw').focus();
+    }
+  });
+}
+
+function logout() {
+  showLogin();
+  // Reset login form to initial state
+  document.getElementById('confirmGroup').style.display = 'none';
+  document.getElementById('loginPwConfirm').value = '';
+  document.getElementById('loginBtn').textContent = '瑙ｉ攣';
+  document.getElementById('loginSubText').textContent = '璇疯緭鍏ヤ富瀵嗙爜瑙ｉ攣';
+  document.getElementById('loginError').textContent = '';
+  const hash = getStoredHash();
+  document.getElementById('setupHint').style.display = hash ? 'none' : 'block';
+  document.getElementById('loginHint').style.display = hash ? 'block' : 'none';
+}
+
 // ===== Data =====
 let data = [];
 let editingId = null;
 
 // ===== Sample Data =====
 const samples = [
-  { name:'GitHub', url:'https://github.com', icon:'👾', color:'purple', username:'zhangsan.dev', password:'G!thUb_2024#p@ss', note:'个人主账号' },
-  { name:'Google', url:'https://google.com', icon:'🌐', color:'blue', username:'zhangsan@gmail.com', password:'G00gl3!Pass_2024', note:'Gmail' },
-  { name:'微信公众平台', url:'https://mp.weixin.qq.com', icon:'💬', color:'green', username:'zhangsan@qq.com', password:'WxMp#2024@dev', note:'小程序管理' },
-  { name:'阿里云', url:'https://aliyun.com', icon:'☁️', color:'orange', username:'aliyun_zs', password:'AliYun!Cs2024', note:'ECS + OSS' },
-  { name:'掘金', url:'https://juejin.cn', icon:'📘', color:'pink', username:'zhangsan_dev', password:'JueJ!n_888', note:'技术博客' },
-  { name:'腾讯云', url:'https://cloud.tencent.com', icon:'🐧', color:'teal', username:'tencent_zs', password:'TxcLoud#2024', note:'CDN + 域名' },
-  { name:'Docker Hub', url:'https://hub.docker.com', icon:'🐳', color:'blue', username:'zhangsan', password:'D0ck3rHub!@#', note:'镜像仓库' },
-  { name:'Notion', url:'https://notion.so', icon:'📝', color:'yellow', username:'zhangsan@outlook.com', password:'N0t!0n_2024$ec', note:'工作文档' },
+  { name:'GitHub', url:'https://github.com', icon:'馃懢', color:'purple', username:'zhangsan.dev', password:'G!thUb_2024#p@ss', note:'涓汉涓昏处鍙? },
+  { name:'Google', url:'https://google.com', icon:'馃寪', color:'blue', username:'zhangsan@gmail.com', password:'G00gl3!Pass_2024', note:'Gmail' },
+  { name:'寰俊鍏紬骞冲彴', url:'https://mp.weixin.qq.com', icon:'馃挰', color:'green', username:'zhangsan@qq.com', password:'WxMp#2024@dev', note:'灏忕▼搴忕鐞? },
+  { name:'闃块噷浜?, url:'https://aliyun.com', icon:'鈽侊笍', color:'orange', username:'aliyun_zs', password:'AliYun!Cs2024', note:'ECS + OSS' },
+  { name:'鎺橀噾', url:'https://juejin.cn', icon:'馃摌', color:'pink', username:'zhangsan_dev', password:'JueJ!n_888', note:'鎶€鏈崥瀹? },
+  { name:'鑵捐浜?, url:'https://cloud.tencent.com', icon:'馃惂', color:'teal', username:'tencent_zs', password:'TxcLoud#2024', note:'CDN + 鍩熷悕' },
+  { name:'Docker Hub', url:'https://hub.docker.com', icon:'馃惓', color:'blue', username:'zhangsan', password:'D0ck3rHub!@#', note:'闀滃儚浠撳簱' },
+  { name:'Notion', url:'https://notion.so', icon:'馃摑', color:'yellow', username:'zhangsan@outlook.com', password:'N0t!0n_2024$ec', note:'宸ヤ綔鏂囨。' },
 ];
 
 // ===== Init =====
 function init() {
-  const saved = localStorage.getItem('pw_vault_data');
-  if (saved) {
-    try { data = JSON.parse(saved); } catch { data = []; }
+  const saved = localStorage.getItem('pw_vault_enc');
+  if (saved && masterKey) {
+    try {
+      const decrypted = decryptData(saved, masterKey);
+      if (decrypted) { data = decrypted; }
+    } catch { data = []; }
   }
   if (data.length === 0) {
     data = samples.map(e => ({ ...e, id: crypto.randomUUID() }));
@@ -456,7 +840,10 @@ function init() {
 }
 
 function save() {
-  localStorage.setItem('pw_vault_data', JSON.stringify(data));
+  if (masterKey) {
+    const encrypted = encryptData(data, masterKey);
+    localStorage.setItem('pw_vault_enc', encrypted);
+  }
 }
 
 // ===== Render =====
@@ -475,55 +862,54 @@ function render() {
   if (filtered.length === 0) {
     grid.innerHTML = `<div class="grid-empty">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M10 12l2 2 4-4"/></svg>
-      <h3>${q ? '没有匹配的结果' : '密码库还是空的'}</h3>
-      <p style="color:var(--text-secondary);font-size:.85rem">${q ? '换个关键词试试' : '点击上方「新增」按钮添加第一条密码'}</p>
+      <h3>${q ? '娌℃湁鍖归厤鐨勭粨鏋? : '瀵嗙爜搴撹繕鏄┖鐨?}</h3>
+      <p style="color:var(--text-secondary);font-size:.85rem">${q ? '鎹釜鍏抽敭璇嶈瘯璇? : '鐐瑰嚮涓婃柟銆屾柊澧炪€嶆寜閽坊鍔犵涓€鏉″瘑鐮?}</p>
     </div>`;
   } else {
     grid.innerHTML = filtered.map(e => renderCard(e)).join('');
   }
 
-  // Update stats
   const cats = new Set(data.map(e => e.color));
   document.getElementById('totalCount').textContent = data.length;
   document.getElementById('categoryCount').textContent = cats.size;
 }
 
 function renderCard(e) {
-  const passwordMasked = '•'.repeat(Math.min(e.password.length, 16));
+  const passwordMasked = '鈥?.repeat(Math.min(e.password.length, 16));
   return `<div class="card" data-color="${e.color}" data-id="${e.id}">
     <div class="card-header">
-      <div class="card-icon ${e.color}">${e.icon || '🔑'}</div>
+      <div class="card-icon ${e.color}">${e.icon || '馃攽'}</div>
       <div class="card-info">
         <div class="name">${esc(e.name)}</div>
-        <div class="url">${esc(e.url) || '—'}</div>
+        <div class="url">${esc(e.url) || '鈥?}</div>
       </div>
       <div class="card-actions">
-        <button class="btn-icon" onclick="editEntry('${e.id}')" title="编辑">✏️</button>
-        <button class="btn-icon danger" onclick="deleteEntry('${e.id}')" title="删除">🗑️</button>
+        <button class="btn-icon" onclick="editEntry('${e.id}')" title="缂栬緫">鉁忥笍</button>
+        <button class="btn-icon danger" onclick="deleteEntry('${e.id}')" title="鍒犻櫎">馃棏锔?/button>
       </div>
     </div>
     <div class="card-body">
       <div class="field">
-        <span class="field-label">用户</span>
+        <span class="field-label">鐢ㄦ埛</span>
         <span class="field-value">${esc(e.username)}</span>
         <span class="field-action">
-          <button class="btn-icon" onclick="copyText('${esc(e.username)}')" title="复制用户名">📋</button>
+          <button class="btn-icon" onclick="copyText('${esc(e.username)}')" title="澶嶅埗鐢ㄦ埛鍚?>馃搵</button>
         </span>
       </div>
       <div class="field">
-        <span class="field-label">密码</span>
-        <span class="field-value pw" id="pw-${e.id}" onclick="togglePw('${e.id}')" title="点击切换显示/隐藏">${passwordMasked}</span>
+        <span class="field-label">瀵嗙爜</span>
+        <span class="field-value pw" id="pw-${e.id}" onclick="togglePw('${e.id}')" title="鐐瑰嚮鍒囨崲鏄剧ず/闅愯棌">${passwordMasked}</span>
         <span class="field-action">
-          <button class="btn-icon" onclick="copyPw('${e.id}')" title="复制密码">📋</button>
+          <button class="btn-icon" onclick="copyPw('${e.id}')" title="澶嶅埗瀵嗙爜">馃搵</button>
         </span>
       </div>
       ${e.note ? `<div class="field">
-        <span class="field-label">备注</span>
+        <span class="field-label">澶囨敞</span>
         <span class="field-value">${esc(e.note)}</span>
       </div>` : ''}
     </div>
     <div class="card-footer">
-      <button class="btn-icon" onclick="window.open('${esc(e.url)}','_blank')" title="打开网址">🔗</button>
+      <button class="btn-icon" onclick="window.open('${esc(e.url)}','_blank')" title="鎵撳紑缃戝潃">馃敆</button>
     </div>
   </div>`;
 }
@@ -536,25 +922,25 @@ function togglePw(id) {
   if (el.classList.toggle('revealed')) {
     el.textContent = entry.password;
   } else {
-    el.textContent = '•'.repeat(Math.min(entry.password.length, 16));
+    el.textContent = '鈥?.repeat(Math.min(entry.password.length, 16));
   }
 }
 
 // ===== Copy =====
 function copyText(t) {
-  navigator.clipboard.writeText(t).then(() => toast('已复制到剪贴板', 'success'));
+  navigator.clipboard.writeText(t).then(() => toast('宸插鍒跺埌鍓创鏉?, 'success'));
 }
 function copyPw(id) {
   const entry = data.find(e => e.id === id);
   if (!entry) return;
-  navigator.clipboard.writeText(entry.password).then(() => toast('密码已复制', 'success'));
+  navigator.clipboard.writeText(entry.password).then(() => toast('瀵嗙爜宸插鍒?, 'success'));
 }
 
 // ===== Modal =====
 function openAddModal() {
   editingId = null;
-  document.getElementById('modalTitle').textContent = '📝 新增密码';
-  document.getElementById('modalSaveBtn').textContent = '保存';
+  document.getElementById('modalTitle').textContent = '馃摑 鏂板瀵嗙爜';
+  document.getElementById('modalSaveBtn').textContent = '淇濆瓨';
   document.getElementById('fName').value = '';
   document.getElementById('fUrl').value = '';
   document.getElementById('fIcon').value = '';
@@ -570,8 +956,8 @@ function editEntry(id) {
   const e = data.find(d => d.id === id);
   if (!e) return;
   editingId = id;
-  document.getElementById('modalTitle').textContent = '✏️ 编辑密码';
-  document.getElementById('modalSaveBtn').textContent = '更新';
+  document.getElementById('modalTitle').textContent = '鉁忥笍 缂栬緫瀵嗙爜';
+  document.getElementById('modalSaveBtn').textContent = '鏇存柊';
   document.getElementById('fName').value = e.name;
   document.getElementById('fUrl').value = e.url || '';
   document.getElementById('fIcon').value = e.icon || '';
@@ -596,81 +982,80 @@ function saveEntry() {
   const password = document.getElementById('fPassword').value;
   const note = document.getElementById('fNote').value.trim();
 
-  if (!name) { toast('请输入服务名称', 'error'); return; }
-  if (!username) { toast('请输入用户名', 'error'); return; }
-  if (!password) { toast('请输入密码', 'error'); return; }
+  if (!name) { toast('璇疯緭鍏ユ湇鍔″悕绉?, 'error'); return; }
+  if (!username) { toast('璇疯緭鍏ョ敤鎴峰悕', 'error'); return; }
+  if (!password) { toast('璇疯緭鍏ュ瘑鐮?, 'error'); return; }
 
-  const entry = { name, url, icon: icon || '🔑', color, username, password, note };
+  const obj = { id: editingId || crypto.randomUUID(), name, url, icon, color, username, password, note };
 
   if (editingId) {
     const idx = data.findIndex(d => d.id === editingId);
-    if (idx !== -1) { data[idx] = { ...data[idx], ...entry }; }
-    toast('已更新「' + name + '」', 'success');
+    if (idx !== -1) data[idx] = obj;
   } else {
-    entry.id = crypto.randomUUID();
-    data.push(entry);
-    toast('已添加「' + name + '」', 'success');
+    data.push(obj);
   }
+
   save();
-  render();
   closeModal();
+  render();
+  toast(editingId ? '鉁?宸叉洿鏂? : '鉁?宸叉柊澧?, 'success');
 }
 
 function deleteEntry(id) {
-  const entry = data.find(e => e.id === id);
-  if (!entry) return;
-  if (!confirm(`确定删除「${entry.name}」的密码记录吗？`)) return;
+  if (!confirm('纭畾瑕佸垹闄よ繖鏉″瘑鐮佸悧锛?)) return;
   data = data.filter(e => e.id !== id);
   save();
   render();
-  toast('已删除「' + entry.name + '」', 'success');
+  toast('馃棏锔?宸插垹闄?, 'success');
 }
 
-// ===== Generate Password =====
 function generatePassword() {
-  const low = 'abcdefghijklmnopqrstuvwxyz';
-  const up = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const num = '0123456789';
-  const sym = '!@#$%^&*_+-=';
-  const all = low + up + num + sym;
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
   let pw = '';
-  pw += low[Math.floor(Math.random()*low.length)];
-  pw += up[Math.floor(Math.random()*up.length)];
-  pw += num[Math.floor(Math.random()*num.length)];
-  pw += sym[Math.floor(Math.random()*sym.length)];
-  for (let i = 0; i < 8; i++) pw += all[Math.floor(Math.random()*all.length)];
-  pw = pw.split('').sort(()=>Math.random()-.5).join('');
+  for (let i = 0; i < 16; i++) pw += chars[Math.floor(Math.random() * chars.length)];
   document.getElementById('fPassword').value = pw;
 }
 
 // ===== Toast =====
 function toast(msg, type) {
-  const container = document.getElementById('toasts');
+  const c = document.getElementById('toasts');
   const el = document.createElement('div');
   el.className = 'toast ' + type;
-  el.innerHTML = (type === 'success'
-    ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>'
-    : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>')
-    + msg;
-  container.appendChild(el);
-  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 2200);
-}
-
-// ===== Utility =====
-function esc(s) {
-  if (!s) return '';
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
+  el.innerHTML = msg;
+  c.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(20px)'; el.style.transition = 'all .3s'; setTimeout(() => el.remove(), 300); }, 2500);
 }
 
 // ===== Keyboard =====
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && document.getElementById('modal').classList.contains('active')) closeModal();
+  if (e.key === 'Escape') {
+    if (document.getElementById('modal').classList.contains('active')) closeModal();
+    else if (!document.getElementById('loginScreen').classList.contains('hidden') && document.getElementById('confirmGroup').style.display === 'block') {
+      // Reset setup flow
+      document.getElementById('confirmGroup').style.display = 'none';
+      document.getElementById('loginPwConfirm').value = '';
+      document.getElementById('loginBtn').textContent = '瑙ｉ攣';
+      document.getElementById('loginSubText').textContent = '璇疯緭鍏ヤ富瀵嗙爜瑙ｉ攣';
+    }
+  }
 });
 
-// ===== Start =====
-init();
+// ===== Boot =====
+(async function boot() {
+  // Apply saved theme
+  setTheme(getTheme());
+
+  // Show login hint based on state
+  const hash = getStoredHash();
+  document.getElementById('setupHint').style.display = hash ? 'none' : 'block';
+  document.getElementById('loginHint').style.display = hash ? 'block' : 'none';
+
+  // Check if already logged in this session
+  if (isLoggedIn() && hash) {
+    // We need the actual password though... session alone isn't enough for the encryption key
+    // So we still need login. But we can show it's "locked" state.
+  }
+})();
 </script>
 </body>
 </html>
