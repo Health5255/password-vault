@@ -1,0 +1,16 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# SQLite database (user data)
+**/data.sqlite
+
+# Server logs
+**/*.log
+
+# TLS certs (auto-generated locally)
+**/certs/
+
+# OS
+.DS_Store
+Thumbs.db
