@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>瀵嗙爜淇濋櫓绠?/title>
+<title>密码保险箱</title>
 <style>
   /* ===== Reset & Variables ===== */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -550,26 +550,27 @@
 <!-- ===== Login Screen ===== -->
 <div id="loginScreen">
   <div class="login-box" style="position:relative">
-    <button class="theme-btn-login" onclick="toggleTheme()" title="鍒囨崲涓婚" id="loginThemeBtn">馃寵</button>
-    <div class="logo-big">馃攼</div>
-    <h1>瀵嗙爜<span>淇濋櫓绠?/span></h1>
-    <p class="sub" id="loginSubText">璇疯緭鍏ヤ富瀵嗙爜瑙ｉ攣</p>
+    <button class="theme-btn-login" onclick="toggleTheme()" title="切换主题" id="loginThemeBtn">🌙</button>
+    <div class="logo-big">🔐</div>
+    <h1>密码<span>保险箱</span></h1>
+    <p class="sub" id="loginSubText">请输入主密码解锁</p>
     <div class="form-group">
-      <label id="loginLabel">涓诲瘑鐮?/label>
-      <input type="password" id="loginPw" placeholder="璇疯緭鍏ヤ富瀵嗙爜" autocomplete="off" onkeydown="if(event.key==='Enter')handleLogin()">
+      <label id="loginLabel">主密码</label>
+      <input type="password" id="loginPw" placeholder="请输入主密码" autocomplete="off" onkeydown="if(event.key==='Enter')handleLogin()">
     </div>
     <div class="form-group" id="confirmGroup" style="display:none">
-      <label>纭涓诲瘑鐮?/label>
-      <input type="password" id="loginPwConfirm" placeholder="鍐嶆杈撳叆涓诲瘑鐮? autocomplete="off" onkeydown="if(event.key==='Enter')handleLogin()">
+      <label>确认主密码</label>
+      <input type="password" id="loginPwConfirm" placeholder="再次输入主密码" autocomplete="off" onkeydown="if(event.key==='Enter')handleLogin()">
     </div>
-    <button class="btn-primary" id="loginBtn" onclick="handleLogin()">瑙ｉ攣</button>
+    <button class="btn-primary" id="loginBtn" onclick="handleLogin()">解锁</button>
     <div class="login-error" id="loginError"></div>
     <div class="setup-hint" id="setupHint" style="display:none">
-      馃挕 棣栨浣跨敤锛岃璁剧疆涓€涓富瀵嗙爜銆傚瘑鐮佹暟鎹皢鐢ㄦ瀵嗙爜鍔犲瘑瀛樺偍鍦ㄦ祻瑙堝櫒涓€?br>
-      <strong>璇风墷璁版瀵嗙爜锛屽繕璁板悗鏃犳硶鎭㈠锛?/strong>
+      💡 首次使用，请设置一个主密码。密码数据将用此密码加密存储在浏览器中。<br>
+      <strong>请牢记此密码，忘记后无法恢复！</strong>
     </div>
     <div class="setup-hint" id="loginHint" style="display:none">
-      鈩癸笍 杈撳叆浣犻娆¤缃殑涓诲瘑鐮佸嵆鍙В閿佸瘑鐮佷繚闄╃銆?    </div>
+      ℹ️ 输入你首次设置的主密码即可解锁密码保险箱。
+    </div>
   </div>
 </div>
 
@@ -577,29 +578,29 @@
 <div id="app" style="display:none;flex-direction:column;min-height:100vh">
 <header>
   <div class="logo">
-    <div class="logo-icon">馃攼</div>
-    <h1>瀵嗙爜<span>淇濋櫓绠?/span></h1>
+    <div class="logo-icon">🔐</div>
+    <h1>密码<span>保险箱</span></h1>
   </div>
   <div class="header-actions">
     <div class="header-stats">
-      <span>鎬昏 <strong id="totalCount">0</strong> 鏉?/span>
-      <span>鍒嗙被 <strong id="categoryCount">0</strong> 绫?/span>
+      <span>总计 <strong id="totalCount">0</strong> 条</span>
+      <span>分类 <strong id="categoryCount">0</strong> 类</span>
     </div>
-    <button class="theme-toggle" onclick="toggleTheme()" title="鍒囨崲娣辫壊/娴呰壊涓婚">
-      <span class="knob">馃寵</span>
+    <button class="theme-toggle" onclick="toggleTheme()" title="切换深色/浅色主题">
+      <span class="knob">🌙</span>
     </button>
-    <button class="btn-logout" onclick="logout()" title="閿佸畾淇濋櫓绠?>馃敀 閿佸畾</button>
+    <button class="btn-logout" onclick="logout()" title="锁定保险箱">🔒 锁定</button>
   </div>
 </header>
 
 <div class="toolbar">
   <div class="search-wrap">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
-    <input type="text" id="search" placeholder="鎼滅储鏈嶅姟鍚嶇О鎴栫敤鎴峰悕鈥? oninput="render()">
+    <input type="text" id="search" placeholder="搜索服务名称或用户名…" oninput="render()">
   </div>
   <button class="btn btn-primary" onclick="openAddModal()">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    鏂板
+    新增
   </button>
 </div>
 
@@ -610,50 +611,50 @@
 <!-- ===== Add / Edit Modal ===== -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
-    <h2 id="modalTitle">馃摑 鏂板瀵嗙爜</h2>
+    <h2 id="modalTitle">📝 新增密码</h2>
     <div class="form-group">
-      <label>鏈嶅姟鍚嶇О</label>
-      <input type="text" id="fName" placeholder="渚嬪: GitHub">
+      <label>服务名称</label>
+      <input type="text" id="fName" placeholder="例如: GitHub">
     </div>
     <div class="form-group">
-      <label>缃戝潃锛堝彲閫夛級</label>
-      <input type="text" id="fUrl" placeholder="渚嬪: https://github.com">
+      <label>网址（可选）</label>
+      <input type="text" id="fUrl" placeholder="例如: https://github.com">
     </div>
     <div class="form-group">
-      <label>鍥炬爣 emoji</label>
-      <input type="text" id="fIcon" placeholder="渚嬪: 馃懢" maxlength="2" style="width:80px">
+      <label>图标 emoji</label>
+      <input type="text" id="fIcon" placeholder="例如: 👾" maxlength="2" style="width:80px">
     </div>
     <div class="form-group">
-      <label>鍒嗙被鑹叉爣</label>
+      <label>分类色标</label>
       <select id="fColor">
-        <option value="purple">绱壊</option>
-        <option value="blue">钃濊壊</option>
-        <option value="green">缁胯壊</option>
-        <option value="orange">姗欒壊</option>
-        <option value="pink">绮夎壊</option>
-        <option value="teal">闈掕壊</option>
-        <option value="red">绾㈣壊</option>
-        <option value="yellow">榛勮壊</option>
+        <option value="purple">紫色</option>
+        <option value="blue">蓝色</option>
+        <option value="green">绿色</option>
+        <option value="orange">橙色</option>
+        <option value="pink">粉色</option>
+        <option value="teal">青色</option>
+        <option value="red">红色</option>
+        <option value="yellow">黄色</option>
       </select>
     </div>
     <div class="form-group">
-      <label>鐢ㄦ埛鍚?/ 閭</label>
-      <input type="text" id="fUsername" placeholder="渚嬪: user@example.com">
+      <label>用户名 / 邮箱</label>
+      <input type="text" id="fUsername" placeholder="例如: user@example.com">
     </div>
     <div class="form-group">
-      <label>瀵嗙爜</label>
+      <label>密码</label>
       <div class="pw-row">
-        <input type="text" id="fPassword" placeholder="杈撳叆瀵嗙爜">
-        <button class="btn-icon" onclick="generatePassword()" title="鐢熸垚闅忔満瀵嗙爜">馃幉</button>
+        <input type="text" id="fPassword" placeholder="输入密码">
+        <button class="btn-icon" onclick="generatePassword()" title="生成随机密码">🎲</button>
       </div>
     </div>
     <div class="form-group">
-      <label>澶囨敞锛堝彲閫夛級</label>
-      <input type="text" id="fNote" placeholder="渚嬪: 涓汉閭">
+      <label>备注（可选）</label>
+      <input type="text" id="fNote" placeholder="例如: 个人邮箱">
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">鍙栨秷</button>
-      <button class="btn btn-primary" id="modalSaveBtn" onclick="saveEntry()">淇濆瓨</button>
+      <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" id="modalSaveBtn" onclick="saveEntry()">保存</button>
     </div>
   </div>
 </div>
@@ -712,7 +713,7 @@ function setTheme(theme) {
   // Update toggle icons
   const isDark = theme === 'dark';
   document.querySelectorAll('.theme-toggle .knob, #loginThemeBtn').forEach(el => {
-    el.textContent = isDark ? '馃寵' : '鈽€锔?;
+    el.textContent = isDark ? '🌙' : '☀️';
   });
 }
 
@@ -754,16 +755,16 @@ function handleLogin() {
       // First click - show confirm field
       document.getElementById('confirmGroup').style.display = 'block';
       document.getElementById('loginPwConfirm').focus();
-      document.getElementById('loginBtn').textContent = '璁剧疆涓诲瘑鐮?;
-      document.getElementById('loginSubText').textContent = '棣栨浣跨敤锛岃璁剧疆涓诲瘑鐮?;
+      document.getElementById('loginBtn').textContent = '设置主密码';
+      document.getElementById('loginSubText').textContent = '首次使用，请设置主密码';
       return;
     }
     if (pw.length < 4) {
-      error.textContent = '涓诲瘑鐮佽嚦灏?4 涓瓧绗?;
+      error.textContent = '主密码至少 4 个字符';
       return;
     }
     if (pw !== confirm) {
-      error.textContent = '涓ゆ杈撳叆鐨勫瘑鐮佷笉涓€鑷?;
+      error.textContent = '两次输入的密码不一致';
       return;
     }
     // Save hash and proceed
@@ -787,7 +788,7 @@ function handleLogin() {
       document.getElementById('app').style.display = 'flex';
       init();
     } else {
-      error.textContent = '鉂?涓诲瘑鐮侀敊璇?;
+      error.textContent = '❌ 主密码错误';
       document.getElementById('loginPw').value = '';
       document.getElementById('loginPw').focus();
     }
@@ -799,8 +800,8 @@ function logout() {
   // Reset login form to initial state
   document.getElementById('confirmGroup').style.display = 'none';
   document.getElementById('loginPwConfirm').value = '';
-  document.getElementById('loginBtn').textContent = '瑙ｉ攣';
-  document.getElementById('loginSubText').textContent = '璇疯緭鍏ヤ富瀵嗙爜瑙ｉ攣';
+  document.getElementById('loginBtn').textContent = '解锁';
+  document.getElementById('loginSubText').textContent = '请输入主密码解锁';
   document.getElementById('loginError').textContent = '';
   const hash = getStoredHash();
   document.getElementById('setupHint').style.display = hash ? 'none' : 'block';
@@ -813,14 +814,14 @@ let editingId = null;
 
 // ===== Sample Data =====
 const samples = [
-  { name:'GitHub', url:'https://github.com', icon:'馃懢', color:'purple', username:'zhangsan.dev', password:'G!thUb_2024#p@ss', note:'涓汉涓昏处鍙? },
-  { name:'Google', url:'https://google.com', icon:'馃寪', color:'blue', username:'zhangsan@gmail.com', password:'G00gl3!Pass_2024', note:'Gmail' },
-  { name:'寰俊鍏紬骞冲彴', url:'https://mp.weixin.qq.com', icon:'馃挰', color:'green', username:'zhangsan@qq.com', password:'WxMp#2024@dev', note:'灏忕▼搴忕鐞? },
-  { name:'闃块噷浜?, url:'https://aliyun.com', icon:'鈽侊笍', color:'orange', username:'aliyun_zs', password:'AliYun!Cs2024', note:'ECS + OSS' },
-  { name:'鎺橀噾', url:'https://juejin.cn', icon:'馃摌', color:'pink', username:'zhangsan_dev', password:'JueJ!n_888', note:'鎶€鏈崥瀹? },
-  { name:'鑵捐浜?, url:'https://cloud.tencent.com', icon:'馃惂', color:'teal', username:'tencent_zs', password:'TxcLoud#2024', note:'CDN + 鍩熷悕' },
-  { name:'Docker Hub', url:'https://hub.docker.com', icon:'馃惓', color:'blue', username:'zhangsan', password:'D0ck3rHub!@#', note:'闀滃儚浠撳簱' },
-  { name:'Notion', url:'https://notion.so', icon:'馃摑', color:'yellow', username:'zhangsan@outlook.com', password:'N0t!0n_2024$ec', note:'宸ヤ綔鏂囨。' },
+  { name:'GitHub', url:'https://github.com', icon:'👾', color:'purple', username:'zhangsan.dev', password:'G!thUb_2024#p@ss', note:'个人主账号' },
+  { name:'Google', url:'https://google.com', icon:'🌐', color:'blue', username:'zhangsan@gmail.com', password:'G00gl3!Pass_2024', note:'Gmail' },
+  { name:'微信公众平台', url:'https://mp.weixin.qq.com', icon:'💬', color:'green', username:'zhangsan@qq.com', password:'WxMp#2024@dev', note:'小程序管理' },
+  { name:'阿里云', url:'https://aliyun.com', icon:'☁️', color:'orange', username:'aliyun_zs', password:'AliYun!Cs2024', note:'ECS + OSS' },
+  { name:'掘金', url:'https://juejin.cn', icon:'📘', color:'pink', username:'zhangsan_dev', password:'JueJ!n_888', note:'技术博客' },
+  { name:'腾讯云', url:'https://cloud.tencent.com', icon:'🐧', color:'teal', username:'tencent_zs', password:'TxcLoud#2024', note:'CDN + 域名' },
+  { name:'Docker Hub', url:'https://hub.docker.com', icon:'🐳', color:'blue', username:'zhangsan', password:'D0ck3rHub!@#', note:'镜像仓库' },
+  { name:'Notion', url:'https://notion.so', icon:'📝', color:'yellow', username:'zhangsan@outlook.com', password:'N0t!0n_2024$ec', note:'工作文档' },
 ];
 
 // ===== Init =====
@@ -862,8 +863,8 @@ function render() {
   if (filtered.length === 0) {
     grid.innerHTML = `<div class="grid-empty">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M10 12l2 2 4-4"/></svg>
-      <h3>${q ? '娌℃湁鍖归厤鐨勭粨鏋? : '瀵嗙爜搴撹繕鏄┖鐨?}</h3>
-      <p style="color:var(--text-secondary);font-size:.85rem">${q ? '鎹釜鍏抽敭璇嶈瘯璇? : '鐐瑰嚮涓婃柟銆屾柊澧炪€嶆寜閽坊鍔犵涓€鏉″瘑鐮?}</p>
+      <h3>${q ? '没有匹配的结果' : '密码库还是空的'}</h3>
+      <p style="color:var(--text-secondary);font-size:.85rem">${q ? '换个关键词试试' : '点击上方「新增」按钮添加第一条密码'}</p>
     </div>`;
   } else {
     grid.innerHTML = filtered.map(e => renderCard(e)).join('');
@@ -875,41 +876,41 @@ function render() {
 }
 
 function renderCard(e) {
-  const passwordMasked = '鈥?.repeat(Math.min(e.password.length, 16));
+  const passwordMasked = '•'.repeat(Math.min(e.password.length, 16));
   return `<div class="card" data-color="${e.color}" data-id="${e.id}">
     <div class="card-header">
-      <div class="card-icon ${e.color}">${e.icon || '馃攽'}</div>
+      <div class="card-icon ${e.color}">${e.icon || '🔑'}</div>
       <div class="card-info">
         <div class="name">${esc(e.name)}</div>
-        <div class="url">${esc(e.url) || '鈥?}</div>
+        <div class="url">${esc(e.url) || '—'}</div>
       </div>
       <div class="card-actions">
-        <button class="btn-icon" onclick="editEntry('${e.id}')" title="缂栬緫">鉁忥笍</button>
-        <button class="btn-icon danger" onclick="deleteEntry('${e.id}')" title="鍒犻櫎">馃棏锔?/button>
+        <button class="btn-icon" onclick="editEntry('${e.id}')" title="编辑">✏️</button>
+        <button class="btn-icon danger" onclick="deleteEntry('${e.id}')" title="删除">🗑️</button>
       </div>
     </div>
     <div class="card-body">
       <div class="field">
-        <span class="field-label">鐢ㄦ埛</span>
+        <span class="field-label">用户</span>
         <span class="field-value">${esc(e.username)}</span>
         <span class="field-action">
-          <button class="btn-icon" onclick="copyText('${esc(e.username)}')" title="澶嶅埗鐢ㄦ埛鍚?>馃搵</button>
+          <button class="btn-icon" onclick="copyText('${esc(e.username)}')" title="复制用户名">📋</button>
         </span>
       </div>
       <div class="field">
-        <span class="field-label">瀵嗙爜</span>
-        <span class="field-value pw" id="pw-${e.id}" onclick="togglePw('${e.id}')" title="鐐瑰嚮鍒囨崲鏄剧ず/闅愯棌">${passwordMasked}</span>
+        <span class="field-label">密码</span>
+        <span class="field-value pw" id="pw-${e.id}" onclick="togglePw('${e.id}')" title="点击切换显示/隐藏">${passwordMasked}</span>
         <span class="field-action">
-          <button class="btn-icon" onclick="copyPw('${e.id}')" title="澶嶅埗瀵嗙爜">馃搵</button>
+          <button class="btn-icon" onclick="copyPw('${e.id}')" title="复制密码">📋</button>
         </span>
       </div>
       ${e.note ? `<div class="field">
-        <span class="field-label">澶囨敞</span>
+        <span class="field-label">备注</span>
         <span class="field-value">${esc(e.note)}</span>
       </div>` : ''}
     </div>
     <div class="card-footer">
-      <button class="btn-icon" onclick="window.open('${esc(e.url)}','_blank')" title="鎵撳紑缃戝潃">馃敆</button>
+      <button class="btn-icon" onclick="window.open('${esc(e.url)}','_blank')" title="打开网址">🔗</button>
     </div>
   </div>`;
 }
@@ -922,25 +923,25 @@ function togglePw(id) {
   if (el.classList.toggle('revealed')) {
     el.textContent = entry.password;
   } else {
-    el.textContent = '鈥?.repeat(Math.min(entry.password.length, 16));
+    el.textContent = '•'.repeat(Math.min(entry.password.length, 16));
   }
 }
 
 // ===== Copy =====
 function copyText(t) {
-  navigator.clipboard.writeText(t).then(() => toast('宸插鍒跺埌鍓创鏉?, 'success'));
+  navigator.clipboard.writeText(t).then(() => toast('已复制到剪贴板', 'success'));
 }
 function copyPw(id) {
   const entry = data.find(e => e.id === id);
   if (!entry) return;
-  navigator.clipboard.writeText(entry.password).then(() => toast('瀵嗙爜宸插鍒?, 'success'));
+  navigator.clipboard.writeText(entry.password).then(() => toast('密码已复制', 'success'));
 }
 
 // ===== Modal =====
 function openAddModal() {
   editingId = null;
-  document.getElementById('modalTitle').textContent = '馃摑 鏂板瀵嗙爜';
-  document.getElementById('modalSaveBtn').textContent = '淇濆瓨';
+  document.getElementById('modalTitle').textContent = '📝 新增密码';
+  document.getElementById('modalSaveBtn').textContent = '保存';
   document.getElementById('fName').value = '';
   document.getElementById('fUrl').value = '';
   document.getElementById('fIcon').value = '';
@@ -956,8 +957,8 @@ function editEntry(id) {
   const e = data.find(d => d.id === id);
   if (!e) return;
   editingId = id;
-  document.getElementById('modalTitle').textContent = '鉁忥笍 缂栬緫瀵嗙爜';
-  document.getElementById('modalSaveBtn').textContent = '鏇存柊';
+  document.getElementById('modalTitle').textContent = '✏️ 编辑密码';
+  document.getElementById('modalSaveBtn').textContent = '更新';
   document.getElementById('fName').value = e.name;
   document.getElementById('fUrl').value = e.url || '';
   document.getElementById('fIcon').value = e.icon || '';
@@ -982,9 +983,9 @@ function saveEntry() {
   const password = document.getElementById('fPassword').value;
   const note = document.getElementById('fNote').value.trim();
 
-  if (!name) { toast('璇疯緭鍏ユ湇鍔″悕绉?, 'error'); return; }
-  if (!username) { toast('璇疯緭鍏ョ敤鎴峰悕', 'error'); return; }
-  if (!password) { toast('璇疯緭鍏ュ瘑鐮?, 'error'); return; }
+  if (!name) { toast('请输入服务名称', 'error'); return; }
+  if (!username) { toast('请输入用户名', 'error'); return; }
+  if (!password) { toast('请输入密码', 'error'); return; }
 
   const obj = { id: editingId || crypto.randomUUID(), name, url, icon, color, username, password, note };
 
@@ -998,15 +999,15 @@ function saveEntry() {
   save();
   closeModal();
   render();
-  toast(editingId ? '鉁?宸叉洿鏂? : '鉁?宸叉柊澧?, 'success');
+  toast(editingId ? '✅ 已更新' : '✅ 已新增', 'success');
 }
 
 function deleteEntry(id) {
-  if (!confirm('纭畾瑕佸垹闄よ繖鏉″瘑鐮佸悧锛?)) return;
+  if (!confirm('确定要删除这条密码吗？')) return;
   data = data.filter(e => e.id !== id);
   save();
   render();
-  toast('馃棏锔?宸插垹闄?, 'success');
+  toast('🗑️ 已删除', 'success');
 }
 
 function generatePassword() {
@@ -1034,8 +1035,8 @@ document.addEventListener('keydown', e => {
       // Reset setup flow
       document.getElementById('confirmGroup').style.display = 'none';
       document.getElementById('loginPwConfirm').value = '';
-      document.getElementById('loginBtn').textContent = '瑙ｉ攣';
-      document.getElementById('loginSubText').textContent = '璇疯緭鍏ヤ富瀵嗙爜瑙ｉ攣';
+      document.getElementById('loginBtn').textContent = '解锁';
+      document.getElementById('loginSubText').textContent = '请输入主密码解锁';
     }
   }
 });
