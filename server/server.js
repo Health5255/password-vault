@@ -157,22 +157,16 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false, // allow loading resources
 }));
 
-// 2. CORS — dynamically allow known origins
-const localOrigins = [
-  'http://localhost:3000',
-  'https://localhost:3000',
-  'http://127.0.0.1:3000',
-  'https://127.0.0.1:3000',
-];
+// 2. CORS — allow any origin (security relies on JWT, not CORS)
+// Note: callback(null, false) causes cors to throw -> Express 500 error,
+// so we always allow. The browser still requires the Access-Control-Allow-Origin
+// header to be present for the POST to proceed.
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (curl, server-to-server)
     if (!origin) return callback(null, true);
-    // Allow localhost development
-    if (localOrigins.includes(origin)) return callback(null, true);
-    // In production, allow any origin (Render HTTPS reverse proxy handles security)
-    if (IS_PROD) return callback(null, true);
-    callback(null, false); // Reject without throwing
+    // Allow all origins (security is via JWT authentication, not CORS)
+    callback(null, true);
   },
   credentials: true,
   maxAge: 86400,
@@ -182,9 +176,7 @@ app.use(cors({
 app.options('*', cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    if (localOrigins.includes(origin)) return callback(null, true);
-    if (IS_PROD) return callback(null, true);
-    callback(null, false); // Reject without throwing
+    callback(null, true);
   },
   credentials: true,
   maxAge: 86400,
