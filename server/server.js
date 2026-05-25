@@ -175,6 +175,18 @@ app.use(cors({
   maxAge: 86400,
 }));
 
+// Explicitly handle CORS preflight for all routes
+app.options('*', cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (localOrigins.includes(origin)) return callback(null, true);
+    if (IS_PROD) return callback(null, true);
+    callback(new Error('不允许的跨域来源'));
+  },
+  credentials: true,
+  maxAge: 86400,
+}));
+
 app.use(express.json({ limit: '1mb' })); // Reduced from 5mb to prevent DoS
 
 // 3. Rate limiting — brute force protection
