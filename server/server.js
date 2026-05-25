@@ -133,6 +133,9 @@ function ensureCert() {
 // ===== Express App =====
 const app = express();
 
+// Trust Render's reverse proxy (for correct req.ip, rate limiting, etc.)
+app.set('trust proxy', 1);
+
 // ===== Security Middleware =====
 
 // 1. Helmet — security headers
@@ -169,7 +172,7 @@ app.use(cors({
     if (localOrigins.includes(origin)) return callback(null, true);
     // In production, allow any origin (Render HTTPS reverse proxy handles security)
     if (IS_PROD) return callback(null, true);
-    callback(new Error('不允许的跨域来源'));
+    callback(null, false); // Reject without throwing
   },
   credentials: true,
   maxAge: 86400,
@@ -181,7 +184,7 @@ app.options('*', cors({
     if (!origin) return callback(null, true);
     if (localOrigins.includes(origin)) return callback(null, true);
     if (IS_PROD) return callback(null, true);
-    callback(new Error('不允许的跨域来源'));
+    callback(null, false); // Reject without throwing
   },
   credentials: true,
   maxAge: 86400,
