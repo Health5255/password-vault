@@ -2,8 +2,10 @@
 node_modules/
 npm-debug.log*
 
-# SQLite database (user data)
-**/data.sqlite
+# SQLite database (local only, migrated to PostgreSQL)
+**/*.sqlite
+**/*.sqlite3
+**/*.db
 
 # Server logs
 **/*.log
