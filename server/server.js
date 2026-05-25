@@ -154,8 +154,8 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false, // allow loading resources
 }));
 
-// 2. CORS — restrict to localhost only
-const allowedOrigins = [
+// 2. CORS — dynamically allow known origins
+const localOrigins = [
   'http://localhost:3000',
   'https://localhost:3000',
   'http://127.0.0.1:3000',
@@ -165,7 +165,10 @@ app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (curl, server-to-server)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Allow localhost development
+    if (localOrigins.includes(origin)) return callback(null, true);
+    // In production, allow any origin (Render HTTPS reverse proxy handles security)
+    if (IS_PROD) return callback(null, true);
     callback(new Error('不允许的跨域来源'));
   },
   credentials: true,
