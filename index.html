@@ -15,8 +15,9 @@
     --border: #2a2a3e;
     --text: #e4e4f0;
     --text-secondary: #8888aa;
-    --accent: #6c5ce7;
-    --accent-glow: rgba(108,92,231,.25);
+    --accent: #7c5cfc;
+    --accent2: #a855f7;
+    --accent-glow: rgba(124,92,252,.25);
     --green: #00d68f;
     --red: #ff6b6b;
     --radius: 12px;
@@ -29,17 +30,18 @@
     --divider: rgba(255,255,255,.04);
   }
   html.light {
-    --bg: #f5f5fa;
+    --bg: #f0eff6;
     --surface: #ffffff;
     --surface-hover: #f0f0f8;
     --border: #e0e0ec;
     --text: #1a1a2e;
     --text-secondary: #6b6b8a;
-    --accent: #6c5ce7;
-    --accent-glow: rgba(108,92,231,.18);
+    --accent: #7c5cfc;
+    --accent2: #a855f7;
+    --accent-glow: rgba(124,92,252,.18);
     --green: #00b884;
     --red: #e74c3c;
-    --shadow: 0 8px 32px rgba(0,0,0,.10);
+    --shadow: 0 8px 32px rgba(0,0,0,.08);
     --toggle-bg: #e0e0ec;
     --input-bg: #f8f8fd;
     --card-border: #e8e8f0;
@@ -66,27 +68,52 @@
     z-index: 100;
     padding: 20px;
   }
+  #loginScreen::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(124,92,252,.10) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(168,85,247,.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(0,214,143,.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
   .login-box {
+    position: relative;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 40px 32px 32px;
-    width: 100%; max-width: 400px;
-    box-shadow: var(--shadow);
+    border-radius: 20px;
+    padding: 24px 22px 20px;
+    width: 100%; max-width: 340px;
+    box-shadow: 0 12px 48px rgba(0,0,0,.5), 0 0 0 1px rgba(124,92,252,.1);
+    animation: loginIn .4s ease backwards;
   }
-  .login-box .logo-big { font-size: 48px; text-align: center; margin-bottom: 8px; }
-  .login-box h1 { font-size: 22px; text-align: center; font-weight: 700; margin-bottom: 4px; }
+  @keyframes loginIn {
+    from { opacity: 0; transform: translateY(16px) scale(.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .login-box::after {
+    content: '';
+    position: absolute; inset: -1px;
+    border-radius: 21px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2), transparent 60%);
+    opacity: 0;
+    transition: opacity .4s;
+    z-index: -1;
+  }
+  .login-box:focus-within::after { opacity: .35; }
+  .login-box .logo-big { font-size: 30px; text-align: center; margin-bottom: 2px; }
+  .login-box h1 { font-size: 17px; text-align: center; font-weight: 700; margin-bottom: 1px; }
   .login-box h1 span { color: var(--accent); }
-  .login-box .sub { font-size: 13px; color: var(--text-secondary); text-align: center; margin-bottom: 24px; }
-  .form-group { margin-bottom: 14px; }
-  .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; text-transform: none; letter-spacing: .3px; }
+  .login-box .sub { font-size: 11px; color: var(--text-secondary); text-align: center; margin-bottom: 14px; }
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; text-transform: none; letter-spacing: .3px; }
   .form-group input, .form-group select {
-    width: 100%; padding: 10px 14px;
+    width: 100%; padding: 9px 12px;
     background: var(--input-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     color: var(--text);
-    font-size: 14px;
+    font-size: 13px;
     outline: none;
     transition: border .2s, box-shadow .2s;
   }
@@ -96,128 +123,134 @@
   }
   .form-group input::placeholder { color: var(--text-secondary); opacity: .5; }
   .btn-primary {
-    width: 100%; padding: 12px;
-    background: var(--accent);
+    width: 100%; padding: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
     color: #fff;
     border: none;
     border-radius: var(--radius-sm);
-    font-size: 15px; font-weight: 600;
+    font-size: 14px; font-weight: 600;
     cursor: pointer;
-    transition: opacity .2s, transform .15s;
+    transition: opacity .2s, transform .15s, box-shadow .2s;
   }
-  .btn-primary:hover { opacity: .9; }
-  .btn-primary:active { transform: scale(.98); }
-  .login-error { font-size: 13px; color: var(--red); margin-top: 10px; min-height: 20px; text-align: center; }
-  .setup-hint { font-size: 12px; color: var(--text-secondary); margin-top: 12px; text-align: center; line-height: 1.6; }
+  .btn-primary:hover { opacity: .92; box-shadow: 0 4px 16px var(--accent-glow); }
+  .btn-primary:active { transform: scale(.97); }
+  .login-error { font-size: 12px; color: var(--red); margin-top: 8px; min-height: 18px; text-align: center; }
   .theme-btn-login {
-    position: absolute; top: 12px; right: 12px;
-    background: none; border: none; font-size: 20px; cursor: pointer;
-    opacity: .6; transition: opacity .2s;
+    position: absolute; top: 10px; right: 10px;
+    background: none; border: none; font-size: 18px; cursor: pointer;
+    opacity: .5; transition: opacity .2s;
   }
   .theme-btn-login:hover { opacity: 1; }
 
   /* Cloud auth toggle */
-  .cloud-tabs { display: flex; gap: 0; margin-bottom: 18px; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+  .cloud-tabs { display: flex; gap: 0; margin-bottom: 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
   .cloud-tabs button {
-    flex: 1; padding: 8px; border: none; background: transparent;
-    color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer;
+    flex: 1; padding: 7px; border: none; background: transparent;
+    color: var(--text-secondary); font-size: 12px; font-weight: 600; cursor: pointer;
     transition: all .2s;
   }
   .cloud-tabs button.active { background: var(--accent); color: #fff; }
   .cloud-tabs button:not(.active):hover { background: var(--surface-hover); }
-  .cloud-divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; color: var(--text-secondary); font-size: 12px; }
-  .cloud-divider::before, .cloud-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
   /* ===== Main App ===== */
   header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 20px;
+    padding: 10px 18px;
     border-bottom: 1px solid var(--border);
     background: var(--surface);
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
   }
   .logo { display: flex; align-items: center; gap: 8px; }
-  .logo-icon { font-size: 24px; }
-  .logo h1 { font-size: 16px; font-weight: 700; white-space: nowrap; }
+  .logo-icon { font-size: 22px; }
+  .logo h1 { font-size: 15px; font-weight: 700; white-space: nowrap; }
   .logo h1 span { color: var(--accent); }
-  .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .header-stats { display: flex; gap: 10px; font-size: 12px; color: var(--text-secondary); }
+  .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .header-stats { display: flex; gap: 8px; font-size: 11px; color: var(--text-secondary); }
   .header-stats strong { color: var(--text); }
   .theme-toggle {
-    display: flex; align-items: center; gap: 6px;
-    background: var(--toggle-bg); border: none; border-radius: 20px; padding: 4px 12px;
-    cursor: pointer; font-size: 14px; transition: background .2s;
+    display: flex; align-items: center; gap: 5px;
+    background: var(--toggle-bg); border: none; border-radius: 20px; padding: 3px 10px;
+    cursor: pointer; font-size: 13px; transition: background .2s;
   }
   .theme-toggle:hover { background: var(--surface-hover); }
   .btn-logout {
     background: none; border: 1px solid var(--border); border-radius: var(--radius-sm);
-    padding: 6px 12px; font-size: 13px; color: var(--text-secondary); cursor: pointer;
+    padding: 5px 10px; font-size: 12px; color: var(--text-secondary); cursor: pointer;
     transition: all .2s;
   }
   .btn-logout:hover { border-color: var(--red); color: var(--red); }
 
   .toolbar {
-    display: flex; align-items: center; gap: 10px;
-    padding: 12px 20px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 18px;
     flex-wrap: wrap;
   }
   .search-wrap {
-    flex: 1; min-width: 180px; position: relative;
+    flex: 1; min-width: 160px; position: relative;
   }
   .search-wrap svg {
     position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-    width: 18px; height: 18px; color: var(--text-secondary); opacity: .5;
+    width: 16px; height: 16px; color: var(--text-secondary); opacity: .5;
   }
   .search-wrap input {
-    width: 100%; padding: 9px 12px 9px 38px;
+    width: 100%; padding: 8px 10px 8px 36px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    color: var(--text); font-size: 13px;
-    outline: none; transition: border .2s;
+    color: var(--text); font-size: 12px;
+    outline: none; transition: border .2s, box-shadow .2s;
   }
-  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
   .btn {
-    padding: 8px 16px; border: none; border-radius: var(--radius-sm);
-    font-size: 13px; font-weight: 600; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border: none; border-radius: var(--radius-sm);
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px;
     transition: opacity .2s, transform .15s;
   }
-  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
   .btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
-  .btn:hover { opacity: .8; }
+  .btn:hover { opacity: .85; }
   .btn:active { transform: scale(.97); }
 
-  .vault { flex: 1; padding: 12px 20px 40px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+  .vault { flex: 1; padding: 10px 18px 30px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
   .grid-empty {
     grid-column: 1 / -1;
     display: flex; flex-direction: column; align-items: center; gap: 8px;
-    padding: 60px 20px; color: var(--text-secondary);
+    padding: 50px 20px; color: var(--text-secondary);
   }
-  .grid-empty svg { width: 48px; height: 48px; opacity: .3; }
-  .grid-empty h3 { font-size: 16px; font-weight: 600; }
+  .grid-empty svg { width: 44px; height: 44px; opacity: .25; }
+  .grid-empty h3 { font-size: 15px; font-weight: 600; }
 
   .card {
     background: var(--surface);
     border: 1px solid var(--card-border);
     border-radius: var(--radius);
     overflow: hidden;
-    transition: border-color .2s, box-shadow .2s;
+    transition: all .25s ease;
+    animation: cardIn .35s ease backwards;
   }
-  .card:hover { border-color: var(--accent); box-shadow: 0 4px 20px var(--accent-glow); }
+  .card:nth-child(1) { animation-delay: 0s; }
+  .card:nth-child(2) { animation-delay: .04s; }
+  .card:nth-child(3) { animation-delay: .08s; }
+  .card:nth-child(n+4) { animation-delay: .12s; }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .card:hover { border-color: var(--accent); box-shadow: 0 4px 20px var(--accent-glow); transform: translateY(-2px); }
   .card-header {
     display: flex; align-items: center; gap: 10px;
-    padding: 14px 14px 0;
+    padding: 12px 12px 0;
   }
   .card-icon {
-    width: 36px; height: 36px; border-radius: 10px;
+    width: 34px; height: 34px; border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
+    font-size: 17px;
     flex-shrink: 0;
   }
-  .card-icon.purple { background: rgba(108,92,231,.15); }
+  .card-icon.purple { background: rgba(124,92,252,.15); }
   .card-icon.blue { background: rgba(54,153,255,.15); }
   .card-icon.green { background: rgba(0,214,143,.15); }
   .card-icon.orange { background: rgba(255,159,67,.15); }
@@ -226,25 +259,25 @@
   .card-icon.red { background: rgba(255,107,107,.15); }
   .card-icon.yellow { background: rgba(255,214,0,.15); }
   .card-info { flex: 1; min-width: 0; }
-  .card-info .name { font-size: 14px; font-weight: 600; }
+  .card-info .name { font-size: 13px; font-weight: 600; }
   .card-info .url { font-size: 11px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .card-actions { display: flex; gap: 4px; }
+  .card-actions { display: flex; gap: 2px; }
   .btn-icon {
-    background: none; border: none; font-size: 16px; cursor: pointer;
-    padding: 4px 6px; border-radius: 6px; transition: background .15s;
-    opacity: .6;
+    background: none; border: none; font-size: 15px; cursor: pointer;
+    padding: 3px 5px; border-radius: 6px; transition: all .15s;
+    opacity: .5;
   }
   .btn-icon:hover { background: var(--surface-hover); opacity: 1; }
   .btn-icon.danger:hover { background: rgba(255,107,107,.12); }
-  .card-body { padding: 10px 14px 12px; }
-  .field { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; }
-  .field-label { color: var(--text-secondary); font-size: 11px; width: 36px; flex-shrink: 0; }
+  .card-body { padding: 8px 12px 10px; }
+  .field { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; font-size: 12px; }
+  .field-label { color: var(--text-secondary); font-size: 11px; width: 32px; flex-shrink: 0; }
   .field-value { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .field-value.pw { cursor: pointer; font-family: 'SF Mono', 'Cascadia Code', monospace; letter-spacing: 1px; }
   .field-value.pw.revealed { letter-spacing: 0; }
   .field-action { flex-shrink: 0; }
-  .card-footer { padding: 4px 14px 10px; display: flex; gap: 4px; }
-  .card-footer .btn-icon { font-size: 14px; }
+  .card-footer { padding: 2px 12px 8px; display: flex; gap: 2px; }
+  .card-footer .btn-icon { font-size: 13px; }
 
   /* ===== Modal ===== */
   .modal-overlay {
@@ -256,16 +289,16 @@
   .modal-overlay.active { opacity: 1; pointer-events: auto; }
   .modal {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 28px 24px 20px;
-    width: 100%; max-width: 420px;
-    box-shadow: var(--shadow);
-    transform: translateY(12px); transition: transform .25s;
+    border-radius: 16px; padding: 24px 20px 18px;
+    width: 100%; max-width: 400px;
+    box-shadow: 0 16px 48px rgba(0,0,0,.5);
+    transform: translateY(12px) scale(.97); transition: transform .25s;
   }
-  .modal-overlay.active .modal { transform: translateY(0); }
-  .modal h2 { font-size: 18px; margin-bottom: 18px; }
+  .modal-overlay.active .modal { transform: translateY(0) scale(1); }
+  .modal h2 { font-size: 16px; margin-bottom: 14px; }
   .pw-row { display: flex; gap: 6px; }
   .pw-row input { flex: 1; }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
 
   /* ===== Toast ===== */
   .toast-container {
@@ -273,27 +306,32 @@
     display: flex; flex-direction: column; gap: 8px;
   }
   .toast {
-    padding: 10px 18px; border-radius: var(--radius-sm);
-    font-size: 13px; font-weight: 500;
+    padding: 9px 16px; border-radius: var(--radius-sm);
+    font-size: 12px; font-weight: 500;
     background: var(--surface);
     border: 1px solid var(--border);
     color: var(--text);
-    box-shadow: var(--shadow);
+    box-shadow: 0 4px 16px rgba(0,0,0,.3);
     backdrop-filter: blur(8px);
+    animation: toastIn .3s ease;
+  }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: translateX(0); }
   }
   .toast.success { border-color: var(--green); }
   .toast.error { border-color: var(--red); }
 
   /* ===== Sync indicator ===== */
   .sync-status {
-    display: flex; align-items: center; gap: 6px;
+    display: flex; align-items: center; gap: 5px;
     font-size: 11px; color: var(--text-secondary);
-    padding: 4px 10px;
+    padding: 3px 8px;
     border-radius: 20px;
     background: var(--toggle-bg);
   }
   .sync-status .dot {
-    width: 7px; height: 7px; border-radius: 50%;
+    width: 6px; height: 6px; border-radius: 50%;
     background: var(--text-secondary);
     transition: background .3s;
   }
@@ -307,10 +345,12 @@
 
   /* ===== Responsive ===== */
   @media (max-width: 500px) {
-    .login-box { padding: 28px 20px 24px; }
-    header { padding: 10px 14px; }
-    .toolbar { padding: 10px 14px; }
-    .vault { padding: 10px 14px 30px; }
+    .login-box { padding: 20px 16px 18px; }
+    .login-box .logo-big { font-size: 26px; }
+    .login-box h1 { font-size: 16px; }
+    header { padding: 8px 12px; }
+    .toolbar { padding: 8px 12px; }
+    .vault { padding: 8px 12px 24px; }
     .grid { grid-template-columns: 1fr; }
     .header-stats { display: none; }
   }
@@ -318,50 +358,30 @@
 </head>
 <body>
 
-<!-- ===== Login Screen ===== -->
+<!-- ===== Login ===== -->
 <div id="loginScreen">
-  <div class="login-box" style="position:relative">
-    <button class="theme-btn-login" onclick="toggleTheme()" title="切换主题" id="loginThemeBtn">🌙</button>
-    <div class="logo-big">🔐</div>
-    <h1>密码<span>保险箱</span></h1>
-    <p class="sub" id="loginSubText">登录云账号以同步数据</p>
+<div class="login-box">
+  <button class="theme-btn-login" id="loginThemeBtn" onclick="toggleTheme()">🌙</button>
+  <div class="logo-big">🔐</div>
+  <h1>密码<span>保险箱</span></h1>
+  <p class="sub" id="loginSubText">登录云账号以同步数据</p>
 
-    <!-- Cloud Auth -->
-    <div class="cloud-tabs">
-      <button class="active" id="tabLogin" onclick="switchCloudTab('login')">登录</button>
-      <button id="tabRegister" onclick="switchCloudTab('register')">注册</button>
-    </div>
-    <div class="form-group">
-      <label>邮箱</label>
-      <input type="email" id="cloudEmail" placeholder="your@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')handleCloudAuth()">
-    </div>
-    <div class="form-group">
-      <label>密码</label>
-      <input type="password" id="cloudPassword" placeholder="至少6位，请牢记" autocomplete="off" onkeydown="if(event.key==='Enter')handleCloudAuth()">
-    </div>
-    <button class="btn-primary" id="cloudAuthBtn" onclick="handleCloudAuth()">登录</button>
-    <div class="login-error" id="cloudError"></div>
-
-    <div class="cloud-divider">本地主密码</div>
-
-    <div class="form-group">
-      <label id="loginLabel">主密码</label>
-      <input type="password" id="loginPw" placeholder="请输入主密码" autocomplete="off" onkeydown="if(event.key==='Enter')handleLogin()">
-    </div>
-    <div class="form-group" id="confirmGroup" style="display:none">
-      <label>确认主密码</label>
-      <input type="password" id="loginPwConfirm" placeholder="再次输入主密码" autocomplete="off" onkeydown="if(event.key==='Enter')handleLogin()">
-    </div>
-    <button class="btn-primary" id="loginBtn" onclick="handleLogin()">解锁</button>
-    <div class="login-error" id="loginError"></div>
-    <div class="setup-hint" id="setupHint" style="display:none">
-      💡 首次使用，请设置一个主密码。密码数据将用此密码加密存储在云端。<br>
-      <strong>请牢记此密码，忘记后无法恢复！</strong>
-    </div>
-    <div class="setup-hint" id="loginHint" style="display:none">
-      ℹ️ 输入你首次设置的主密码即可解锁密码保险箱。
-    </div>
+  <div class="cloud-tabs">
+    <button class="active" id="tabLogin" onclick="switchCloudTab('login')">登录</button>
+    <button id="tabRegister" onclick="switchCloudTab('register')">注册</button>
   </div>
+
+  <div class="form-group">
+    <label>邮箱</label>
+    <input type="email" id="cloudEmail" placeholder="your@email.com" autocomplete="email" onkeydown="if(event.key==='Enter'&&this.value)document.getElementById('cloudPassword').focus()">
+  </div>
+  <div class="form-group">
+    <label>密码</label>
+    <input type="password" id="cloudPassword" placeholder="至少8位" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleCloudAuth()">
+  </div>
+  <button class="btn-primary" id="cloudAuthBtn" onclick="handleCloudAuth()">登录</button>
+  <div class="login-error" id="cloudError"></div>
+</div>
 </div>
 
 <!-- ===== Main App ===== -->
@@ -393,7 +413,7 @@
     <input type="text" id="search" placeholder="搜索服务名称或用户名…" oninput="render()">
   </div>
   <button class="btn btn-primary" onclick="openAddModal()">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     新增
   </button>
 </div>
@@ -481,7 +501,7 @@ async function deriveKey(password) {
   const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
   return crypto.subtle.deriveKey({
     name: 'PBKDF2',
-    salt: enc.encode('pw-vault-salt-v1'),
+    salt: enc.encode('pw-vault-salt-v2'),
     iterations: 100000,
     hash: 'SHA-256'
   }, keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
@@ -492,7 +512,6 @@ async function encryptData(data, password) {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const encoded = new TextEncoder().encode(JSON.stringify(data));
   const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
-  // Combine IV + ciphertext
   const combined = new Uint8Array(iv.length + new Uint8Array(encrypted).length);
   combined.set(iv);
   combined.set(new Uint8Array(encrypted), iv.length);
@@ -534,6 +553,7 @@ let cloudTab = 'login';
 let cloudToken = localStorage.getItem('pw_cloud_token') || '';
 let cloudEmail = localStorage.getItem('pw_cloud_email') || '';
 let serverVersion = 0;
+let masterKey = '';
 
 function switchCloudTab(tab) {
   cloudTab = tab;
@@ -552,7 +572,7 @@ async function handleCloudAuth() {
 
   if (!email) { error.textContent = '请输入邮箱'; return; }
   if (!password) { error.textContent = '请输入密码'; return; }
-  if (password.length < 8) { error.textContent = '登录密码至少8位'; return; }
+  if (password.length < 8) { error.textContent = '密码至少8位'; return; }
   if (password.length > 128) { error.textContent = '密码太长了'; return; }
 
   const btn = document.getElementById('cloudAuthBtn');
@@ -578,7 +598,17 @@ async function handleCloudAuth() {
     cloudEmail = data.email;
     localStorage.setItem('pw_cloud_token', cloudToken);
     localStorage.setItem('pw_cloud_email', cloudEmail);
+
+    // Use cloud password as encryption key - no separate master password needed
+    masterKey = password;
+    sessionStorage.setItem('pw_logged_in', 'true');
+
     toast(cloudTab === 'login' ? '✅ 云账号登录成功' : '✅ 云账号注册成功', 'success');
+
+    // Enter the app
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('app').style.display = 'flex';
+    await init();
   } catch (e) {
     error.textContent = '网络错误，请检查服务器是否启动';
   }
@@ -604,7 +634,6 @@ async function syncFetch() {
     });
     if (!res.ok) {
       if (res.status === 401) {
-        // Token expired
         cloudToken = '';
         localStorage.removeItem('pw_cloud_token');
         setSyncState('error', '登录已过期');
@@ -637,10 +666,8 @@ async function syncPush(encrypted) {
     });
     if (!res.ok) {
       if (res.status === 409) {
-        // Conflict
         const err = await res.json();
         toast('⚠️ 数据冲突：服务器数据已更新，正在重新获取...', 'error');
-        // Re-fetch server data
         const sv = await syncFetch();
         if (sv && sv.encrypted && masterKey) {
           const decrypted = await decryptData(sv.encrypted, masterKey);
@@ -672,90 +699,15 @@ async function syncPush(encrypted) {
   }
 }
 
-// ===== Login =====
-let masterKey = '';
-
-function getStoredHash() {
-  return localStorage.getItem('pw_master_hash');
-}
-
-function isLoggedIn() {
-  return sessionStorage.getItem('pw_logged_in') === 'true';
-}
-
-function showLogin() {
-  document.getElementById('loginScreen').classList.remove('hidden');
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('loginPw').value = '';
-  document.getElementById('loginPwConfirm').value = '';
-  document.getElementById('loginError').textContent = '';
+// ===== Auth state =====
+function logout() {
   masterKey = '';
   sessionStorage.removeItem('pw_logged_in');
-}
-
-function handleLogin() {
-  const pw = document.getElementById('loginPw').value;
-  const error = document.getElementById('loginError');
-  const hash = getStoredHash();
-
-  if (!hash) {
-    // First time setup
-    const confirm = document.getElementById('loginPwConfirm').value;
-    if (!confirm) {
-      document.getElementById('confirmGroup').style.display = 'block';
-      document.getElementById('loginPwConfirm').focus();
-      document.getElementById('loginBtn').textContent = '设置主密码';
-      document.getElementById('loginSubText').textContent = '首次使用，请设置主密码';
-      return;
-    }
-    if (pw.length < 8) {
-      error.textContent = '主密码至少 8 个字符，建议包含字母和数字';
-      return;
-    }
-    if (pw.length > 128) {
-      error.textContent = '主密码太长了';
-      return;
-    }
-    if (pw !== confirm) {
-      error.textContent = '两次输入的密码不一致';
-      return;
-    }
-    sha256(pw).then(async h => {
-      localStorage.setItem('pw_master_hash', h);
-      masterKey = pw;
-      sessionStorage.setItem('pw_logged_in', 'true');
-      document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('app').style.display = 'flex';
-      await init();
-    });
-    return;
-  }
-
-  sha256(pw).then(async h => {
-    if (h === hash) {
-      masterKey = pw;
-      sessionStorage.setItem('pw_logged_in', 'true');
-      document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('app').style.display = 'flex';
-      await init();
-    } else {
-      error.textContent = '❌ 主密码错误';
-      document.getElementById('loginPw').value = '';
-      document.getElementById('loginPw').focus();
-    }
-  });
-}
-
-function logout() {
-  showLogin();
-  document.getElementById('confirmGroup').style.display = 'none';
-  document.getElementById('loginPwConfirm').value = '';
-  document.getElementById('loginBtn').textContent = '解锁';
-  document.getElementById('loginSubText').textContent = '登录云账号以同步数据';
-  document.getElementById('loginError').textContent = '';
-  const hash = getStoredHash();
-  document.getElementById('setupHint').style.display = hash ? 'none' : 'block';
-  document.getElementById('loginHint').style.display = hash ? 'block' : 'none';
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('cloudEmail').value = cloudEmail || '';
+  document.getElementById('cloudPassword').value = '';
+  document.getElementById('cloudError').textContent = '';
   setSyncState('', '未同步');
 }
 
@@ -783,7 +735,6 @@ async function init() {
       const decrypted = await decryptData(sv.encrypted, masterKey);
       if (decrypted) {
         data = decrypted;
-        // Also save locally as cache
         saveLocal();
         render();
         return;
@@ -813,7 +764,6 @@ async function saveLocal() {
 
 async function save() {
   await saveLocal();
-  // Push to cloud if logged in
   if (cloudToken && masterKey) {
     const encrypted = await encryptData(data, masterKey);
     await syncPush(encrypted);
@@ -840,7 +790,7 @@ function render() {
       <p style="color:var(--text-secondary);font-size:.85rem">${q ? '换个关键词试试' : '点击上方「新增」按钮添加第一条密码'}</p>
     </div>`;
   } else {
-    grid.innerHTML = filtered.map(e => renderCard(e)).join('');
+    grid.innerHTML = filtered.map((e, i) => renderCard(e, i)).join('');
   }
 
   const cats = new Set(data.map(e => e.color));
@@ -848,9 +798,10 @@ function render() {
   document.getElementById('categoryCount').textContent = cats.size;
 }
 
-function renderCard(e) {
+function renderCard(e, i) {
   const passwordMasked = '•'.repeat(Math.min(e.password.length, 16));
-  return `<div class="card" data-color="${e.color}" data-id="${e.id}">
+  const delay = Math.min(i * 30, 200);
+  return `<div class="card" data-color="${e.color}" data-id="${e.id}" style="animation-delay:${delay}ms">
     <div class="card-header">
       <div class="card-icon ${e.color}">${e.icon || '🔑'}</div>
       <div class="card-info">
@@ -931,7 +882,7 @@ function copyPw(id) {
 
 // ===== Inactivity Auto-Lock (5 minutes) =====
 let inactivityTimer = null;
-const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+const INACTIVITY_TIMEOUT = 5 * 60 * 1000;
 
 function resetInactivityTimer() {
   if (inactivityTimer) {
@@ -947,7 +898,6 @@ function resetInactivityTimer() {
   }
 }
 
-// Reset inactivity timer on user interaction
 document.addEventListener('click', resetInactivityTimer);
 document.addEventListener('keydown', resetInactivityTimer);
 document.addEventListener('mousemove', resetInactivityTimer);
@@ -1042,19 +992,18 @@ function toast(msg, type) {
   el.className = 'toast ' + type;
   el.innerHTML = msg;
   c.appendChild(el);
-  setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(20px)'; el.style.transition = 'all .3s'; setTimeout(() => el.remove(), 300); }, 2500);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(20px)';
+    el.style.transition = 'all .3s';
+    setTimeout(() => el.remove(), 300);
+  }, 2500);
 }
 
 // ===== Keyboard =====
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     if (document.getElementById('modal').classList.contains('active')) closeModal();
-    else if (!document.getElementById('loginScreen').classList.contains('hidden') && document.getElementById('confirmGroup').style.display === 'block') {
-      document.getElementById('confirmGroup').style.display = 'none';
-      document.getElementById('loginPwConfirm').value = '';
-      document.getElementById('loginBtn').textContent = '解锁';
-      document.getElementById('loginSubText').textContent = '登录云账号以同步数据';
-    }
   }
 });
 
@@ -1065,14 +1014,6 @@ document.addEventListener('keydown', e => {
   // Restore cloud token if exists
   if (cloudToken && cloudEmail) {
     document.getElementById('cloudEmail').value = cloudEmail;
-  }
-
-  const hash = getStoredHash();
-  document.getElementById('setupHint').style.display = hash ? 'none' : 'block';
-  document.getElementById('loginHint').style.display = hash ? 'block' : 'none';
-
-  if (isLoggedIn() && hash) {
-    // session valid but needs password - nothing to do
   }
 })();
 </script>
