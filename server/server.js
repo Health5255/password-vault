@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
-const initSqlJs = require('sql.js');
+const { Pool } = require('pg');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
@@ -21,43 +21,75 @@ if (!JWT_SECRET) {
   console.error('   set JWT_SECRET=你的随机密钥');
   process.exit(1);
 }
-const DB_PATH = path.join(__dirname, 'data.sqlite');
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+  console.error('✖ 错误：必须设置环境变量 DATABASE_URL（PostgreSQL 连接地址）');
+  console.error('   Render: 在 Dashboard 添加 PostgreSQL 后自动生成');
+  console.error('   本地: 可用 Docker 启动 PostgreSQL 或使用本地安装');
+  process.exit(1);
+}
+
 const CERT_DIR = path.join(__dirname, 'certs');
 const CERT_KEY = path.join(CERT_DIR, 'server.key');
 const CERT_PEM = path.join(CERT_DIR, 'server.cert');
 
-let db;
+// ===== PostgreSQL Connection =====
+const pool = new Pool({
+  connectionString: DATABASE_URL,
+  ssl: IS_PROD ? { rejectUnauthorized: false } : false,
+});
 
-// ===== DB Helper (sql.js — pure JS, no native build needed) =====
-function dbRun(sql, params = []) {
-  db.run(sql, params);
-  const data = db.export();
-  fs.writeFileSync(DB_PATH, Buffer.from(data));
+pool.on('error', (err) => {
+  console.error('✖ PostgreSQL 连接异常:', err.message);
+});
+
+// ===== DB Helper (PostgreSQL) =====
+async function dbQuery(sql, params = []) {
+  return await pool.query(sql, params);
 }
 
-function dbAll(sql, params = []) {
-  const stmt = db.prepare(sql);
-  if (params.length > 0) stmt.bind(params);
-  const rows = [];
-  while (stmt.step()) {
-    rows.push(stmt.getAsObject());
-  }
-  stmt.free();
-  return rows;
+async function dbRun(sql, params = []) {
+  return await dbQuery(sql, params);
 }
 
-function dbGet(sql, params = []) {
-  const rows = dbAll(sql, params);
-  return rows.length > 0 ? rows[0] : null;
+async function dbAll(sql, params = []) {
+  const result = await dbQuery(sql, params);
+  return result.rows;
 }
 
-function dbInit() {
-  db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, created_at TEXT DEFAULT (datetime('now')))");
-  db.run("CREATE TABLE IF NOT EXISTS vaults (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL UNIQUE, encrypted_data TEXT NOT NULL DEFAULT '', version INTEGER NOT NULL DEFAULT 1, updated_at TEXT DEFAULT (datetime('now')), FOREIGN KEY (user_id) REFERENCES users(id))");
-  // Login attempt tracking for rate limiting
-  db.run("CREATE TABLE IF NOT EXISTS login_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL, ip TEXT NOT NULL, attempted_at TEXT DEFAULT (datetime('now')))");
-  const data = db.export();
-  fs.writeFileSync(DB_PATH, Buffer.from(data));
+async function dbGet(sql, params = []) {
+  const result = await dbQuery(sql, params);
+  return result.rows.length > 0 ? result.rows[0] : null;
+}
+
+async function dbInit() {
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS vaults (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL UNIQUE,
+      encrypted_data TEXT NOT NULL DEFAULT '',
+      version INTEGER NOT NULL DEFAULT 1,
+      updated_at TIMESTAMP DEFAULT NOW(),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `);
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS login_attempts (
+      id SERIAL PRIMARY KEY,
+      email TEXT NOT NULL,
+      ip TEXT NOT NULL,
+      attempted_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+  console.log('✓ 数据库表结构检查完成');
 }
 
 // ===== Input Sanitization =====
@@ -70,63 +102,69 @@ function sanitize(str) {
 // ===== Generate Self-Signed HTTPS Certificate =====
 function ensureCert() {
   if (fs.existsSync(CERT_KEY) && fs.existsSync(CERT_PEM)) {
-    return { key: CERT_KEY, cert: CERT_PEM };
+    const keyAge = Date.now() - fs.statSync(CERT_KEY).mtimeMs;
+    const certAge = Date.now() - fs.statSync(CERT_PEM).mtimeMs;
+    const maxAge = 365 * 24 * 60 * 60 * 1000; // 1 year
+    if (keyAge < maxAge && certAge < maxAge) {
+      console.log('ℹ 现有证书有效，跳过生成');
+      return { key: CERT_KEY, cert: CERT_PEM };
+    }
   }
 
-  console.log('  🔐  正在生成自签名 SSL 证书...');
+  console.log('🔑 正在生成自签名证书...');
   if (!fs.existsSync(CERT_DIR)) {
     fs.mkdirSync(CERT_DIR, { recursive: true });
   }
 
-  const forge = require('node-forge');
-  const pki = forge.pki;
+  try {
+    const forge = require('node-forge');
+    const pki = forge.pki;
 
-  // Generate 2048-bit key pair
-  console.log('  🗝️   生成 RSA 密钥对...');
-  const keys = pki.rsa.generateKeyPair(2048);
+    // Generate key pair
+    console.log('   generating key pair...');
+    const keys = pki.rsa.generateKeyPair(2048);
 
-  // Create certificate
-  const cert = pki.createCertificate();
-  cert.publicKey = keys.publicKey;
-  cert.serialNumber = Date.now().toString(16);
-  cert.validity.notBefore = new Date();
-  cert.validity.notAfter = new Date();
-  cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 10); // 10 years validity
+    // Create certificate
+    const cert = pki.createCertificate();
+    cert.publicKey = keys.publicKey;
+    cert.serialNumber = '01' + Date.now().toString(16);
+    cert.validity.notBefore = new Date();
+    cert.validity.notAfter = new Date();
+    cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 1);
 
-  const attrs = [
-    { name: 'commonName', value: 'localhost' },
-    { name: 'organizationName', value: 'Password Vault' },
-    { name: 'countryName', value: 'CN' },
-  ];
+    const attrs = [
+      { name: 'commonName', value: 'localhost' },
+      { name: 'organizationName', value: 'Password Vault Dev' }
+    ];
+    cert.setSubject(attrs);
+    cert.setIssuer(attrs);
 
-  cert.setSubject(attrs);
-  cert.setIssuer(attrs);
+    cert.setExtensions([
+      { name: 'basicConstraints', cA: false },
+      { name: 'keyUsage', keyCertSign: true, digitalSignature: true, keyEncipherment: true },
+      { name: 'extKeyUsage', serverAuth: true },
+      {
+        name: 'subjectAltName',
+        altNames: [
+          { type: 2, value: 'localhost' },
+          { type: 7, ip: '127.0.0.1' }
+        ]
+      }
+    ]);
 
-  cert.setExtensions([
-    { name: 'basicConstraints', cA: false },
-    { name: 'keyUsage', keyCertSign: true, digitalSignature: true, keyEncipherment: true },
-    { name: 'extKeyUsage', serverAuth: true },
-    {
-      name: 'subjectAltName',
-      altNames: [
-        { type: 2, value: 'localhost' },     // DNS
-        { type: 7, ip: '127.0.0.1' },        // IP
-        { type: 7, ip: '::1' },               // IPv6 localhost
-      ],
-    },
-  ]);
+    cert.sign(keys.privateKey, forge.md.sha256.create());
 
-  // Self-sign
-  cert.sign(keys.privateKey, forge.md.sha256.create());
+    // Write files
+    fs.writeFileSync(CERT_KEY, pki.privateKeyToPem(keys.privateKey));
+    fs.writeFileSync(CERT_PEM, pki.certificateToPem(cert));
 
-  // Export PEM
-  const pemKey = pki.privateKeyToPem(keys.privateKey);
-  const pemCert = pki.certificateToPem(cert);
-
-  fs.writeFileSync(CERT_KEY, pemKey);
-  fs.writeFileSync(CERT_PEM, pemCert);
-  console.log('  ✅  自签名证书已生成（有效期10年）');
-  return { key: CERT_KEY, cert: CERT_PEM };
+    console.log('✅ 自签名证书已生成');
+    return { key: CERT_KEY, cert: CERT_PEM };
+  } catch (e) {
+    console.error('❌ 证书生成失败:', e.message);
+    console.log('ℹ 请手动安装 OpenSSL 或 node-forge，或使用已存在的证书');
+    process.exit(1);
+  }
 }
 
 // ===== Express App =====
@@ -138,8 +176,6 @@ app.set('trust proxy', 1);
 // ===== CORS & Security Middleware =====
 
 // 1. Manual CORS — handles ALL requests including OPTIONS preflight.
-//    Using raw middleware instead of cors package to avoid Helmet v8 interaction
-//    issues where OPTIONS requests with Origin header bypass the middleware chain.
 app.use((req, res, next) => {
   const origin = req.headers.origin || '*';
   res.header('Access-Control-Allow-Origin', origin);
@@ -148,14 +184,13 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.header('Access-Control-Max-Age', '86400');
 
-  // Respond immediately to OPTIONS preflight
   if (req.method === 'OPTIONS') {
     return res.status(204).send('');
   }
   next();
 });
 
-// 2. Helmet — security headers (after CORS so CORS preflight exits first)
+// 2. Helmet — security headers
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -174,20 +209,20 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
-app.use(express.json({ limit: '1mb' })); // Reduced from 5mb to prevent DoS
+app.use(express.json({ limit: '1mb' }));
 
 // 3. Rate limiting — brute force protection
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // max 10 attempts per window per IP
+  windowMs: 15 * 60 * 1000,
+  max: 10,
   message: { error: '登录尝试过于频繁，请15分钟后再试' },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 const globalLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 100, // max 100 requests per minute per IP
+  windowMs: 60 * 1000,
+  max: 100,
   message: { error: '请求过于频繁，请稍后再试' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -223,7 +258,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
   try {
     const rawEmail = sanitize(req.body.email || '');
     const rawPassword = req.body.password || '';
-    const email = rawEmail.toLowerCase(); // normalize email
+    const email = rawEmail.toLowerCase();
 
     if (!email || !rawPassword) {
       return res.status(400).json({ error: '邮箱和密码不能为空' });
@@ -242,19 +277,25 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     }
 
     // Check existing
-    const existing = dbGet('SELECT id FROM users WHERE email = ?', [email]);
+    const existing = await dbGet('SELECT id FROM users WHERE email = $1', [email]);
     if (existing) {
       return res.status(409).json({ error: '该邮箱已注册，请直接登录' });
     }
 
-    const hash = await bcrypt.hash(rawPassword, 12); // increased from 10 to 12 rounds
-    dbRun('INSERT INTO users (email, password_hash) VALUES (?, ?)', [email, hash]);
+    const hash = await bcrypt.hash(rawPassword, 12);
+    const result = await dbRun(
+      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id',
+      [email, hash]
+    );
+    const userId = result.rows[0].id;
 
-    const user = dbGet('SELECT id FROM users WHERE email = ?', [email]);
-    dbRun('INSERT INTO vaults (user_id, encrypted_data, version) VALUES (?, ?, 1)', [user.id, '']);
+    await dbRun(
+      'INSERT INTO vaults (user_id, encrypted_data, version) VALUES ($1, $2, 1)',
+      [userId, '']
+    );
 
-    const token = jwt.sign({ userId: user.id, email }, JWT_SECRET, { expiresIn: '30d' });
-    res.json({ token, email, userId: user.id });
+    const token = jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ token, email, userId });
   } catch (e) {
     console.error('Register error:', e);
     res.status(500).json({ error: '注册失败，请重试' });
@@ -272,9 +313,8 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
       return res.status(400).json({ error: '邮箱和密码不能为空' });
     }
 
-    const user = dbGet('SELECT * FROM users WHERE email = ?', [email]);
+    const user = await dbGet('SELECT * FROM users WHERE email = $1', [email]);
     if (!user) {
-      // Use same timing to prevent email enumeration
       await bcrypt.compare(rawPassword, '$2a$12$0000000000000000000000000000000000000');
       return res.status(401).json({ error: '邮箱或密码错误' });
     }
@@ -293,20 +333,28 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
 });
 
 // Get vault data
-app.get('/api/vault', auth, (req, res) => {
-  const vault = dbGet('SELECT encrypted_data, version, updated_at FROM vaults WHERE user_id = ?', [req.userId]);
-  if (!vault) {
-    return res.status(404).json({ error: '保险箱不存在' });
+app.get('/api/vault', auth, async (req, res) => {
+  try {
+    const vault = await dbGet(
+      'SELECT encrypted_data, version, updated_at FROM vaults WHERE user_id = $1',
+      [req.userId]
+    );
+    if (!vault) {
+      return res.status(404).json({ error: '保险箱不存在' });
+    }
+    res.json({
+      encrypted: vault.encrypted_data,
+      version: vault.version,
+      updatedAt: vault.updated_at
+    });
+  } catch (e) {
+    console.error('Vault load error:', e);
+    res.status(500).json({ error: '加载保险箱失败' });
   }
-  res.json({
-    encrypted: vault.encrypted_data,
-    version: vault.version,
-    updatedAt: vault.updated_at
-  });
 });
 
 // Update vault data
-app.put('/api/vault', auth, (req, res) => {
+app.put('/api/vault', auth, async (req, res) => {
   try {
     const encrypted = req.body.encrypted;
     const clientVersion = req.body.clientVersion;
@@ -318,9 +366,11 @@ app.put('/api/vault', auth, (req, res) => {
       return res.status(400).json({ error: '数据格式错误' });
     }
 
-    // Check for version conflict
     if (clientVersion !== undefined) {
-      const vault = dbGet('SELECT version FROM vaults WHERE user_id = ?', [req.userId]);
+      const vault = await dbGet(
+        'SELECT version FROM vaults WHERE user_id = $1',
+        [req.userId]
+      );
       if (!vault) {
         return res.status(404).json({ error: '保险箱不存在' });
       }
@@ -332,8 +382,14 @@ app.put('/api/vault', auth, (req, res) => {
       }
     }
 
-    dbRun("UPDATE vaults SET encrypted_data = ?, version = version + 1, updated_at = datetime('now') WHERE user_id = ?", [encrypted, req.userId]);
-    const vault = dbGet('SELECT version FROM vaults WHERE user_id = ?', [req.userId]);
+    await dbRun(
+      "UPDATE vaults SET encrypted_data = $1, version = version + 1, updated_at = NOW() WHERE user_id = $2",
+      [encrypted, req.userId]
+    );
+    const vault = await dbGet(
+      'SELECT version FROM vaults WHERE user_id = $1',
+      [req.userId]
+    );
     res.json({ version: vault.version });
   } catch (e) {
     console.error('Vault update error:', e);
@@ -354,33 +410,30 @@ if (fs.existsSync(frontendPath)) {
 
 // ===== Start =====
 async function start() {
-  const SQL = await initSqlJs();
-
-  // Load or create database
-  if (fs.existsSync(DB_PATH)) {
-    const buf = fs.readFileSync(DB_PATH);
-    db = new SQL.Database(buf);
-  } else {
-    db = new SQL.Database();
+  // Test database connection
+  try {
+    const result = await dbQuery('SELECT NOW()');
+    console.log(`✓ PostgreSQL 连接成功 (${result.rows[0].now})`);
+  } catch (e) {
+    console.error('✖ 无法连接 PostgreSQL:', e.message);
+    process.exit(1);
   }
 
-  dbInit();
-  console.log('✓ 数据库初始化完成');
+  // Initialize tables
+  await dbInit();
 
   if (IS_PROD) {
-    // Production (Render): plain HTTP, Render reverse proxy provides HTTPS
     app.listen(PORT, '0.0.0.0', () => {
       console.log('');
       console.log('  🔐  密码保险箱服务器已启动 (HTTP → Render HTTPS)');
       console.log(`  📍  端口: ${PORT}`);
-      console.log(`  📦  数据库: ${DB_PATH}`);
+      console.log(`  🗄️  数据库: PostgreSQL (外部)`);
       console.log(`  🛡️  Helmet 安全头已启用`);
       console.log(`  🚦  登录限速: 每15分钟最多10次尝试`);
       console.log(`  🔑  JWT 密钥: 已从环境变量读取`);
       console.log('');
     });
   } else {
-    // Local: self-signed HTTPS
     const certPaths = ensureCert();
     const httpsOptions = {
       key: fs.readFileSync(certPaths.key),
@@ -390,7 +443,7 @@ async function start() {
       console.log('');
       console.log('  🔐  密码保险箱服务器已启动 (HTTPS)');
       console.log(`  📍  https://localhost:${PORT}`);
-      console.log(`  📦  数据库: ${DB_PATH}`);
+      console.log(`  🗄️  数据库: PostgreSQL (外部)`);
       console.log(`  🛡️  Helmet 安全头已启用`);
       console.log(`  🚦  登录限速: 每15分钟最多10次尝试`);
       console.log(`  🔑  JWT 密钥: 已从环境变量读取`);
@@ -401,7 +454,4 @@ async function start() {
   }
 }
 
-start().catch(e => {
-  console.error('启动失败:', e);
-  process.exit(1);
-});
+start();
