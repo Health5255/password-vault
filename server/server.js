@@ -1,5 +1,4 @@
 const express = require('express');
-const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
@@ -136,15 +135,33 @@ const app = express();
 // Trust Render's reverse proxy (for correct req.ip, rate limiting, etc.)
 app.set('trust proxy', 1);
 
-// ===== Security Middleware =====
+// ===== CORS & Security Middleware =====
 
-// 1. Helmet — security headers
+// 1. Manual CORS — handles ALL requests including OPTIONS preflight.
+//    Using raw middleware instead of cors package to avoid Helmet v8 interaction
+//    issues where OPTIONS requests with Origin header bypass the middleware chain.
+app.use((req, res, next) => {
+  const origin = req.headers.origin || '*';
+  res.header('Access-Control-Allow-Origin', origin);
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Max-Age', '86400');
+
+  // Respond immediately to OPTIONS preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(204).send('');
+  }
+  next();
+});
+
+// 2. Helmet — security headers (after CORS so CORS preflight exits first)
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],  // needed for inline scripts in index.html
-      scriptSrcAttr: ["'unsafe-inline'"],         // needed for onclick="" handlers
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:"],
       connectSrc: ["'self'"],
@@ -154,32 +171,7 @@ app.use(helmet({
       upgradeInsecureRequests: [],
     },
   },
-  crossOriginEmbedderPolicy: false, // allow loading resources
-}));
-
-// 2. CORS — allow any origin (security relies on JWT, not CORS)
-// Note: callback(null, false) causes cors to throw -> Express 500 error,
-// so we always allow. The browser still requires the Access-Control-Allow-Origin
-// header to be present for the POST to proceed.
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (curl, server-to-server)
-    if (!origin) return callback(null, true);
-    // Allow all origins (security is via JWT authentication, not CORS)
-    callback(null, true);
-  },
-  credentials: true,
-  maxAge: 86400,
-}));
-
-// Explicitly handle CORS preflight for all routes
-app.options('*', cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    callback(null, true);
-  },
-  credentials: true,
-  maxAge: 86400,
+  crossOriginEmbedderPolicy: false,
 }));
 
 app.use(express.json({ limit: '1mb' })); // Reduced from 5mb to prevent DoS
